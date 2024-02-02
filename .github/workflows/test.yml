@@ -20,6 +20,12 @@ jobs:
       with:
         go-version: "1.21"
 
+    - name: Setup Private Git Repo Access
+      run: |
+        echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
+      env:
+        GITHUB_TOKEN: ${{ secrets.SPINKUBE_GITHUB_ACCESS_TOKEN }}
+
     - name: Build
       run: go build -o spin-plugin-k8s main.go
 
