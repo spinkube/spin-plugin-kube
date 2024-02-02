@@ -20,12 +20,6 @@ jobs:
       with:
         go-version: "1.21"
 
-    - name: Setup Private Git Repo Access
-      run: |
-        echo "machine github.com login fermybot password ${GH_ACCESS_TOKEN}" > $HOME/.netrc
-      env:
-        GH_ACCESS_TOKEN: ${{ secrets.ACTIONS_PRIVATE_REPO_CHECKOUT_TOKEN }}
-
     - name: Build
       run: go build -o spin-plugin-k8s main.go
 
