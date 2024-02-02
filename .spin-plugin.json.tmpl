@@ -1,0 +1,35 @@
+{
+  "name": "k8s",
+  "description": "A plugin to manage spin apps",
+  "homepage": "https://github.com/spinkube/spin-plugin-k8s",
+  "version": "{{ Version }}",
+  "spinCompatibility": ">=1.5",
+  "license": "Apache-2.0",
+  "packages": [
+    {
+      "os": "linux",
+      "arch": "amd64",
+      {{#addURLAndSha}}https://github.com/spinkube/spin-plugin-k8s/releases/download/{{ TagName }}/spin-plugin-k8s-{{ TagName }}-linux-amd64.tar.gz{{/addURLAndSha}}
+    },
+    {
+      "os": "linux",
+      "arch": "aarch64",
+      {{#addURLAndSha}}https://github.com/spinkube/spin-plugin-k8s/releases/download/{{ TagName }}/spin-plugin-k8s-{{ TagName }}-linux-arm64.tar.gz{{/addURLAndSha}}
+    },
+    {
+      "os": "macos",
+      "arch": "aarch64",
+      {{#addURLAndSha}}https://github.com/spinkube/spin-plugin-k8s/releases/download/{{ TagName }}/spin-plugin-k8s-{{ TagName }}-darwin-arm64.tar.gz{{/addURLAndSha}}
+    },
+    {
+      "os": "macos",
+      "arch": "amd64",
+      {{#addURLAndSha}}https://github.com/spinkube/spin-plugin-k8s/releases/download/{{ TagName }}/spin-plugin-k8s-{{ TagName }}-darwin-amd64.tar.gz{{/addURLAndSha}}
+    },
+    {
+      "os": "windows",
+      "arch": "amd64",
+      {{#addURLAndSha}}https://github.com/spinkube/spin-plugin-k8s/releases/download/{{ TagName }}/spin-plugin-k8s-{{ TagName }}-windows-amd64.tar.gz{{/addURLAndSha}}
+    }
+  ]
+}

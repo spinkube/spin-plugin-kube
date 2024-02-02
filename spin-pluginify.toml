@@ -1,0 +1,7 @@
+name = "k8s"
+description = "Commands for publishing applications to Kubernetes using the spin-operator."
+version = "0.1.0"
+spin_compatibility = ">=2.0"
+license = "Apache-2.0"
+homepage = "https://github.com/spinkube/spin-plugin-k8s"
+package = "./bin/spin-plugin-k8s"

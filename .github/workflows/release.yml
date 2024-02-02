@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - "v[0-9]+.[0-9]+"
+    tags:
+      - "v*"
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.21"
+
+    - name: Setup Private Git Repo Access
+      run: |
+        echo "machine github.com login fermybot password ${GH_ACCESS_TOKEN}" > $HOME/.netrc
+      env:
+        GH_ACCESS_TOKEN: ${{ secrets.ACTIONS_PRIVATE_REPO_CHECKOUT_TOKEN }}
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: GoReleaser
+      uses: goreleaser/goreleaser-action@v4.2.0
+      with:
+        version: latest
+        args: release --clean ${{ github.ref == 'refs/heads/main' && '--snapshot' || '' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: create GitHub release (canary)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        gh release delete canary --cleanup-tag
+        gh release create canary dist/spin-plugin-k8s*.tar.gz \
+          --title canary \
+          --prerelease \
+          --notes-file - <<- EOF
+          This is a "canary" release of the most recent commits on our main branch. Canary is **not stable**.
+          It is only intended for developers wishing to try out the latest features in Spin, some of which may not be fully implemented.
+        EOF
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Release Plugin
+      if: github.ref == 'refs/heads/main'
+      uses: rajatjindal/spin-plugin-releaser@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        upload_checksums: true
+        template_file: .spin-plugin.json.tmpl
