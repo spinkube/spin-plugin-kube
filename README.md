@@ -1,6 +1,6 @@
 # Spin k8s plugin
 
-A [Spin plugin](https://github.com/spinkube/spin-plugins) for interacting with Kubernetes.
+A [Spin plugin](https://github.com/fermyon/spin-plugins) for interacting with Kubernetes.
 
 ## Install
 
