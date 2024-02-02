@@ -21,8 +21,7 @@ jobs:
         go-version: "1.21"
 
     - name: Setup Private Git Repo Access
-      run: |
-        echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
+      run: echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
       env:
         GITHUB_TOKEN: ${{ secrets.SPINKUBE_GITHUB_ACCESS_TOKEN }}
 
@@ -46,6 +45,8 @@ jobs:
           This is a "canary" release of the most recent commits on our main branch. Canary is **not stable**.
           It is only intended for developers wishing to try out the latest features in Spin, some of which may not be fully implemented.
         EOF
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Release Plugin
       if: github.ref == 'refs/heads/main'
