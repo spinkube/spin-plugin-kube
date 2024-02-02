@@ -21,8 +21,7 @@ jobs:
         go-version: "1.21"
 
     - name: Setup Private Git Repo Access
-      run: |
-        echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
+      run: echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
       env:
         GITHUB_TOKEN: ${{ secrets.SPINKUBE_GITHUB_ACCESS_TOKEN }}
 
