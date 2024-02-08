@@ -11,10 +11,10 @@ import (
 func printApps(w io.Writer, apps ...spinv1.SpinApp) {
 	table := uitable.New()
 	table.MaxColWidth = 50
-	table.AddRow("NAMESPACE", "NAME", "EXECUTOR", "REPLICAS")
+	table.AddRow("NAMESPACE", "NAME", "EXECUTOR", "READY")
 
 	for _, app := range apps {
-		table.AddRow(app.Namespace, app.Name, app.Spec.Executor, app.Spec.Replicas)
+		table.AddRow(app.Namespace, app.Name, app.Spec.Executor, fmt.Sprintf("%d/%d", app.Status.ReadyReplicas, app.Spec.Replicas))
 	}
 
 	fmt.Fprintln(w, table)
