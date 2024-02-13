@@ -1,21 +1,15 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"strings"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/rajatjindal/kubectl-reverse-proxy/pkg/proxy"
 	"github.com/spf13/cobra"
-	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubectl/pkg/cmd/logs"
-	"k8s.io/kubectl/pkg/cmd/portforward"
-	cmdutil "k8s.io/kubectl/pkg/cmd/util"
-	"k8s.io/kubectl/pkg/polymorphichelpers"
 )
-
-const spinAppPort = "80"
 
 var connectCmd = &cobra.Command{
 	Use:    "connect [<app-name>]",
@@ -31,85 +25,67 @@ var connectCmd = &cobra.Command{
 			appName = appNameFromCurrentDirContext
 		}
 
-		localPort, _ := cmd.Flags().GetString("local-port")
-		fieldSelector, _ := cmd.Flags().GetString("field-selector")
-		labelSelector, _ := cmd.Flags().GetString("label-selector")
-
-		if appName == "" && fieldSelector == "" && labelSelector == "" {
-			return fmt.Errorf("either one of app-name or fieldSelector or labelSelector is required")
+		if appName == "" {
+			return fmt.Errorf("app name is required")
 		}
 
-		getPodTimeout, err := cmdutil.GetPodRunningTimeoutFlag(cmd)
+		port, err := cmd.Flags().GetString("local-port")
 		if err != nil {
 			return err
 		}
 
-		kubeclient, err := getKubernetesClientset()
+		adminPort, err := cmd.Flags().GetString("admin-port")
 		if err != nil {
 			return err
 		}
 
-		resp, err := kubeclient.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{
-			LabelSelector: labelSelector,
-			FieldSelector: fieldSelector,
-		})
+		k8sclient, err := getKubernetesClientset()
 		if err != nil {
 			return err
 		}
 
-		if len(resp.Items) == 0 {
-			return fmt.Errorf("no active deployment found for SpinApp")
-		}
-
-		var deploy appsv1.Deployment
-		if appName != "" {
-			for _, item := range resp.Items {
-				if item.Name == appName {
-					deploy = item
-					break
-				}
-			}
-		} else {
-			deploy = resp.Items[0]
-		}
-
+		stopCh := make(chan struct{})
 		factory, streams := NewCommandFactory()
-		pod, err := polymorphichelpers.AttachablePodForObjectFn(factory, &deploy, getPodTimeout)
-		if err != nil {
-			return err
+
+		config := &proxy.Config{
+			K8sClient:     k8sclient,
+			LabelSelector: fmt.Sprintf("kubernetes.io/service-name=%s", appName),
+			Namespace:     getNamespace(configFlags),
+			ListenPort:    port,
+			AdminPort:     adminPort,
+			Factory:       factory,
+			Streams:       streams,
+			StopCh:        stopCh,
 		}
 
-		fmt.Printf("connecting to pod %s/%s\n", pod.Namespace, pod.Name)
-		reference := fmt.Sprintf("pod/%s", pod.Name)
-		if strings.Contains(localPort, ":") {
-			return fmt.Errorf("local port should not contain ':' character")
+		fmt.Printf("starting reverse proxy listening on localhost:%s\n", port)
+
+		// starts in background
+		proxy.Start(cmd.Context(), config)
+
+		sigterm := make(chan os.Signal, 1)
+		signal.Notify(sigterm, syscall.SIGTERM)
+		signal.Notify(sigterm, syscall.SIGINT)
+		<-sigterm
+
+		close(stopCh)
+		fmt.Println("Stopping proxy. Press Ctrl+C again to kill immediately")
+
+		for {
+			select {
+			case <-sigterm:
+				return nil
+			case <-time.NewTicker(2 * time.Second).C:
+				return nil
+			}
 		}
-
-		go func() {
-			logOpts = logs.NewLogsOptions(streams, false)
-			logOpts.Follow = true
-
-			lccmd := logs.NewCmdLogs(factory, streams)
-
-			cmdutil.CheckErr(logOpts.Complete(factory, lccmd, []string{reference}))
-			cmdutil.CheckErr(logOpts.Validate())
-			cmdutil.CheckErr(logOpts.RunLogs())
-		}()
-
-		ccmd := portforward.NewCmdPortForward(factory, streams)
-		ccmd.Run(ccmd, []string{reference, fmt.Sprintf("%s:%s", localPort, spinAppPort)})
-
-		return nil
 	},
 }
 
 func init() {
-	cmdutil.AddPodRunningTimeoutFlag(connectCmd, 30*time.Second)
+	connectCmd.Flags().StringP("local-port", "p", "8081", "local port to start proxy on")
+	connectCmd.Flags().StringP("admin-port", "a", "2019", "reverse proy admin port")
+
 	configFlags.AddFlags(connectCmd.Flags())
-
-	connectCmd.Flags().StringP("local-port", "p", "", "local port to listen on when connecting to SpinApp")
-	connectCmd.Flags().String("field-selector", "", "Selector (field query) to filter on, supports '=', '==', and '!='.(e.g. --field-selector key1=value1,key2=value2). The server only supports a limited number of field queries per type.")
-	connectCmd.Flags().StringP("selector", "l", "", "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2). Matching objects must satisfy all of the specified label constraints.")
-
 	rootCmd.AddCommand(connectCmd)
 }
