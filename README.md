@@ -90,14 +90,13 @@ spin plugins install pluginify --yes
 Compile the plugin from source.
 
 ```sh
-mkdir bin
-go build -ldflags "-X github.com/spinkube/spin-plugin-k8s/pkg/cmd.Version=git-$(git rev-parse --short HEAD)" -o bin ./...
+make build
 ```
 
 Install the plugin.
 
 ```sh
-spin pluginify --install
+make install
 ```
 
 ## Scaffold the SpinApp
