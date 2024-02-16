@@ -22,6 +22,15 @@ func TestScaffoldCmd(t *testing.T) {
 			},
 			expected: "scaffold_image.yml",
 		},
+		{
+			name: "runtime config is provided",
+			opts: ScaffoldOptions{
+				from:       "ghcr.io/foo/example-app:v0.1.0",
+				replicas:   2,
+				configfile: "testdata/runtime-config.toml",
+			},
+			expected: "scaffold_runtime_config.yml",
+		},
 	}
 
 	for _, tc := range testcases {
