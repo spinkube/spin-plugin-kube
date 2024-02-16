@@ -9,6 +9,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type ScaffoldOptions struct {
+	from     string
+	replicas int32
+	output   string
+}
+
+var scaffoldOpts = &ScaffoldOptions{}
+
 type appConfig struct {
 	Name     string
 	Image    string
@@ -28,24 +36,14 @@ var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
 	Short: "scaffold SpinApp manifest",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		artifact, err := cmd.Flags().GetString("from")
-		if err != nil {
-			return err
-		}
-
-		reference := strings.Split(artifact, ":")[0]
+		reference := strings.Split(scaffoldOpts.from, ":")[0]
 		referenceParts := strings.Split(reference, "/")
 		name := referenceParts[len(referenceParts)-1]
 
-		replicas, err = cmd.Flags().GetInt32("replicas")
-		if err != nil {
-			return err
-		}
-
 		config := appConfig{
 			Name:     name,
-			Image:    artifact,
-			Replicas: replicas,
+			Image:    scaffoldOpts.from,
+			Replicas: scaffoldOpts.replicas,
 		}
 
 		tmpl, err := template.New("spinapp").Parse(manifestStr)
@@ -53,13 +51,9 @@ var scaffoldCmd = &cobra.Command{
 			panic(err)
 		}
 
-		output, err := cmd.Flags().GetString("out")
-		if err != nil {
-			return err
-		}
-		if output != "" {
+		if scaffoldOpts.output != "" {
 			// Create a new file.
-			file, err := os.Create(output)
+			file, err := os.Create(scaffoldOpts.output)
 			if err != nil {
 				return err
 			}
@@ -70,7 +64,7 @@ var scaffoldCmd = &cobra.Command{
 				return err
 			}
 
-			log.Printf("\nSpinApp manifest saved to %s\n", output)
+			log.Printf("\nSpinApp manifest saved to %s\n", scaffoldOpts.output)
 			return nil
 
 		}
@@ -80,9 +74,9 @@ var scaffoldCmd = &cobra.Command{
 }
 
 func init() {
-	scaffoldCmd.Flags().Int32P("replicas", "r", 2, "Number of replicas for the spin app")
-	scaffoldCmd.Flags().StringP("from", "f", "", "Reference in the registry of the Spin application")
-	scaffoldCmd.Flags().StringP("out", "o", "", "path to file to write manifest yaml")
+	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Number of replicas for the spin app")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the Spin application")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
 	scaffoldCmd.MarkFlagRequired("from")
 
 	rootCmd.AddCommand(scaffoldCmd)
