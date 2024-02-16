@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -15,7 +17,7 @@ type ScaffoldOptions struct {
 	output   string
 }
 
-var scaffoldOpts = &ScaffoldOptions{}
+var scaffoldOpts = ScaffoldOptions{}
 
 type appConfig struct {
 	Name     string
@@ -36,30 +38,13 @@ var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
 	Short: "scaffold SpinApp manifest",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		reference := strings.Split(scaffoldOpts.from, ":")[0]
-		referenceParts := strings.Split(reference, "/")
-		name := referenceParts[len(referenceParts)-1]
-
-		config := appConfig{
-			Name:     name,
-			Image:    scaffoldOpts.from,
-			Replicas: scaffoldOpts.replicas,
-		}
-
-		tmpl, err := template.New("spinapp").Parse(manifestStr)
+		content, err := scaffold(scaffoldOpts)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		if scaffoldOpts.output != "" {
-			// Create a new file.
-			file, err := os.Create(scaffoldOpts.output)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			err = tmpl.Execute(file, config)
+			err = os.WriteFile(scaffoldOpts.output, content, 0644)
 			if err != nil {
 				return err
 			}
@@ -69,8 +54,35 @@ var scaffoldCmd = &cobra.Command{
 
 		}
 
-		return tmpl.Execute(os.Stdout, config)
+		fmt.Fprint(os.Stdout, string(content))
+
+		return nil
 	},
+}
+
+func scaffold(opts ScaffoldOptions) ([]byte, error) {
+	reference := strings.Split(opts.from, ":")[0]
+	referenceParts := strings.Split(reference, "/")
+	name := referenceParts[len(referenceParts)-1]
+
+	config := appConfig{
+		Name:     name,
+		Image:    opts.from,
+		Replicas: opts.replicas,
+	}
+
+	tmpl, err := template.New("spinapp").Parse(manifestStr)
+	if err != nil {
+		return nil, err
+	}
+
+	var output bytes.Buffer
+	err = tmpl.Execute(&output, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return output.Bytes(), nil
 }
 
 func init() {
