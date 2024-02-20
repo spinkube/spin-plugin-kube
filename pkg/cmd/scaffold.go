@@ -35,6 +35,7 @@ metadata:
 spec:
   image: "{{ .Image }}"
   replicas: {{ .Replicas }}
+  executor: containerd-shim-spin
 {{- if .RuntimeConfig }}
   runtimeConfig:
     loadFromSecret: {{ .Name }}-runtime-config

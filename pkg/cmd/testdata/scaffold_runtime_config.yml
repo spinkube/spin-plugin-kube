@@ -5,6 +5,7 @@ metadata:
 spec:
   image: "ghcr.io/foo/example-app:v0.1.0"
   replicas: 2
+  executor: containerd-shim-spin
   runtimeConfig:
     loadFromSecret: example-app-runtime-config
 ---
