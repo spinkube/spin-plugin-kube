@@ -6,6 +6,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spinkube/spin-plugin-k8s/pkg/k8s"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -45,7 +46,30 @@ func newRootCmd() *cobra.Command {
 		},
 	}
 
-	configFlags.AddFlags(rootCmd.Flags())
+	flagSet := pflag.NewFlagSet("kubectl", pflag.ExitOnError)
+	configFlags.AddFlags(flagSet)
+	flagSet.VisitAll(func(f *pflag.Flag) {
+		// disable shorthand for all kubectl flags
+		f.Shorthand = ""
+		// mark all as hidden
+		f.Hidden = true
+
+		switch f.Name {
+		case "kubeconfig":
+			f.Hidden = false
+			f.Usage = "the path to the kubeconfig file"
+		case "namespace":
+			f.Hidden = false
+			// restore the shorthand for --namespace
+			f.Shorthand = "n"
+			f.Usage = "the namespace scope"
+		default:
+			// unless explicitly listed above, we prefix all kubectl flags with "kube-" so they don't clash with our own
+			// flags
+			f.Name = "kube-" + f.Name
+		}
+	})
+	rootCmd.Flags().AddFlagSet(flagSet)
 	return rootCmd
 }
 
