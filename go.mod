@@ -7,6 +7,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spinkube/spin-operator v0.0.0-20240202155520-0b092c8f1da2
+	github.com/stretchr/testify v1.8.4
 	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
 	k8s.io/cli-runtime v0.29.1
@@ -61,6 +62,7 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

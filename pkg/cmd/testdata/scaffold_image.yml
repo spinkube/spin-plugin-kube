@@ -1,0 +1,7 @@
+apiVersion: core.spinoperator.dev/v1
+kind: SpinApp
+metadata:
+  name: example-app
+spec:
+  image: "ghcr.io/foo/example-app:v0.1.0"
+  replicas: 2
