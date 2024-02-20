@@ -11,14 +11,20 @@ spin plugins update
 spin plugins install k8s
 ```
 
-The canary release of the plugin represents the most recent commits on `main` and may not be stable, with some
-features still in progress.
+The canary release of the plugin represents the most recent commits on `main` and may not be stable, with some features
+still in progress.
 
 To install the canary release, use the `--url` parameter.
 
 ```sh
 spin plugins install --url https://github.com/spinkube/spin-plugin-k8s/releases/download/canary/k8s.json
 ```
+
+## Prerequisites
+
+Make sure you have spin-operator installed in your Kubernetes cluster. Follow the [spin-operator Quickstart
+Guide](https://github.com/spinkube/spin-operator/blob/main/documentation/content/quickstart.md) for a step-by-step
+tutorial to set up a development environment.
 
 ## Usage
 
@@ -48,31 +54,34 @@ Publish your application to a container registry:
 
 ```sh
 docker login
-spin registry push bacongobbler/hello-rust
+spin registry push bacongobbler/hello-rust:latest
 ```
 
-Deploy it to your Kubernetes cluster with `spin k8s deploy`.
+Deploy it to your Kubernetes cluster with `spin k8s scaffold` and `kubectl apply`:
 
 ```sh
-spin k8s deploy --from bacongobbler/hello-rust
+spin k8s scaffold --from bacongobbler/hello-rust:latest | kubectl apply -f -
 ```
 
-Connect to your app with `spin k8s connect`.
+View your application with `kubectl get spinapps`.
 
 ```sh
-spin k8s connect hello-rust
+$ kubectl get spinapps
+NAME         READY REPLICAS   EXECUTOR
+hello-rust   2     2          containerd-shim-spin
 ```
 
-List apps currently running in your cluster with `spin k8s list`.
+You'll notice two replicas are running. `spin k8s scaffold` deploys two replicas by default. You can change this with
+the `--replicas` flag:
 
 ```sh
-spin k8s list
+spin k8s scaffold --from bacongobbler/hello-rust:latest --replicas 3 | kubectl apply -f -
 ```
 
-Delete an app from the cluster with `spin k8s delete`.
+Delete an app from the cluster with `kubectl delete`.
 
 ```sh
-spin k8s delete hello-rust
+kubectl delete spinapp hello-rust
 ```
 
 ## Compiling from source
@@ -90,37 +99,11 @@ spin plugins install pluginify --yes
 Compile the plugin from source.
 
 ```sh
-make build
+make
 ```
 
 Install the plugin.
 
 ```sh
 make install
-```
-
-## Scaffold the SpinApp
-
-The `spin k8s scaffold` command produces the Kubernetes manifest for a SpinApp Kubernetes custom resource. This can be used in case you want to generate and inspect the SpinApp before deploying to a cluster. The `-f` flag is used to pass in a reference to the Spin application in a registry and is a required flag.
-
-Example usage:
-
-```console
-$ spin k8s scaffold -f ghcr.io/deislabs/containerd-wasm-shims/examples/spin-rust-hello:v0.10.0
-
-apiVersion: core.spinoperator.dev/v1
-kind: SpinApp
-metadata:
-  name: spin-rust-hello
-spec:
-  image: "ghcr.io/deislabs/containerd-wasm-shims/examples/spin-rust-hello:v0.10.0"
-  replicas: 2
-```
-
-Use `-o` to save the manifest to a file.
-
-```console
-$ spin k8s scaffold -f ghcr.io/deislabs/containerd-wasm-shims/examples/spin-rust-hello:v0.10.0 -o spinapp.yaml
-
-SpinApp manifest saved to spinapp.yaml
 ```
