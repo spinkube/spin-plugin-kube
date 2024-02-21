@@ -21,7 +21,7 @@ var (
 var deployCmd = &cobra.Command{
 	Use:    "deploy",
 	Short:  "deploy spin app",
-	Hidden: isExperimentalFlagSet,
+	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		reference := strings.Split(artifact, ":")[0]
 		referenceParts := strings.Split(reference, "/")

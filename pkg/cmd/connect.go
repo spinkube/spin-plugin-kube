@@ -20,7 +20,7 @@ const spinAppPort = "80"
 var connectCmd = &cobra.Command{
 	Use:    "connect [<app-name>]",
 	Short:  "connect to spin app locally",
-	Hidden: isExperimentalFlagSet,
+	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
 		if len(args) > 0 {

@@ -13,7 +13,7 @@ var logOpts *logs.LogsOptions
 var logsCmd = &cobra.Command{
 	Use:    "logs [<app-name>]",
 	Short:  "print the logs for a SpinApp",
-	Hidden: isExperimentalFlagSet,
+	Hidden: isExperimentalFlagNotSet,
 	Run: func(cmd *cobra.Command, args []string) {
 		var appName string
 		if len(args) > 0 {

@@ -10,7 +10,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:    "list",
 	Short:  "List apps",
-	Hidden: isExperimentalFlagSet,
+	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		appsResp, err := k8simpl.ListSpinApps(context.TODO(), namespace)
 		if err != nil {
