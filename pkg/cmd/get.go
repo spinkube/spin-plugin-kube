@@ -11,7 +11,7 @@ import (
 var getCmd = &cobra.Command{
 	Use:    "get [app-name]",
 	Short:  "Display detailed information about an app",
-	Hidden: os.Getenv("SPIN_EXPERIMENTAL") == "",
+	Hidden: isExperimentalFlagSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
 		if len(args) > 0 {
