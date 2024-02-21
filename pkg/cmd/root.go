@@ -18,6 +18,7 @@ var (
 	configFlags                  = genericclioptions.NewConfigFlags(true)
 	namespace                    string
 	k8simpl                      *k8s.Impl
+	isExperimentalFlagNotSet     = os.Getenv("SPIN_EXPERIMENTAL") == ""
 )
 
 // rootCmd represents the base command when called without any subcommands
