@@ -15,6 +15,7 @@ import (
 type ScaffoldOptions struct {
 	from       string
 	replicas   int32
+	executor   string
 	output     string
 	configfile string
 }
@@ -24,6 +25,7 @@ var scaffoldOpts = ScaffoldOptions{}
 type appConfig struct {
 	Name          string
 	Image         string
+	Executor      string
 	Replicas      int32
 	RuntimeConfig string
 }
@@ -35,7 +37,7 @@ metadata:
 spec:
   image: "{{ .Image }}"
   replicas: {{ .Replicas }}
-  executor: containerd-shim-spin
+  executor: {{ .Executor }}
 {{- if .RuntimeConfig }}
   runtimeConfig:
     loadFromSecret: {{ .Name }}-runtime-config
@@ -87,6 +89,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		Name:     name,
 		Image:    opts.from,
 		Replicas: opts.replicas,
+		Executor: opts.executor,
 	}
 
 	if opts.configfile != "" {
@@ -115,6 +118,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 func init() {
 	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Number of replicas for the spin app")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the Spin application")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.executor, "executor", "", "containerd-shim-spin", "The executor used to run the Spin application")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "path to runtime config file")
 
