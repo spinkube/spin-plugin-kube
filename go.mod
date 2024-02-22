@@ -6,6 +6,7 @@ require (
 	github.com/gosuri/uitable v0.0.4
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/spf13/cobra v1.8.0
+	github.com/spf13/pflag v1.0.5
 	github.com/spinkube/spin-operator v0.0.0-20240202155520-0b092c8f1da2
 	github.com/stretchr/testify v1.8.4
 	k8s.io/api v0.29.1
@@ -65,7 +66,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20231121155337-90ade8b19d09 // indirect
 	golang.org/x/net v0.20.0 // indirect
