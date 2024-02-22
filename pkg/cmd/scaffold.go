@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -81,6 +82,23 @@ var scaffoldCmd = &cobra.Command{
 }
 
 func scaffold(opts ScaffoldOptions) ([]byte, error) {
+	// flag validation
+
+	// must be a valid executor
+	if opts.executor != "containerd-shim-spin" && opts.executor != "cyclotron" {
+		return nil, fmt.Errorf("executor must be either containerd-shim-spin or cyclotron")
+	}
+
+	// replica count must be greater than 0
+	if opts.replicas < 0 {
+		return nil, fmt.Errorf("replicas must be greater than 0")
+	}
+
+	// check that the image reference is valid
+	if !validateImageReference(opts.from) {
+		return nil, fmt.Errorf("invalid image reference")
+	}
+
 	reference := strings.Split(opts.from, ":")[0]
 	referenceParts := strings.Split(reference, "/")
 	name := referenceParts[len(referenceParts)-1]
@@ -113,6 +131,19 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	}
 
 	return output.Bytes(), nil
+}
+
+func validateImageReference(imageRef string) bool {
+	// This regex is designed to match strings that are valid image references, which include an optional registry (like
+	// "ghcr.io"), a repository name (like "bacongobbler/hello-rust"), and an optional tag (like "1.0.0").
+	//
+	// The regex is quite complex, but in general it's looking for sequences of alphanumeric characters, separated by
+	// periods, underscores, or hyphens, and optionally followed by a slash and more such sequences. The sequences can
+	// be repeated any number of times. The final sequence can optionally be followed by a colon and another sequence,
+	// representing the tag.
+	pattern := `^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$|^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?/([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$`
+	regex := regexp.MustCompile(pattern)
+	return regex.MatchString(imageRef)
 }
 
 func init() {
