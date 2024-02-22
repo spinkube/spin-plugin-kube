@@ -47,3 +47,22 @@ func TestScaffoldCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateImageReference_ValidImageReference(t *testing.T) {
+	testCases := []string{
+		"bacongobbler/hello-rust",
+		"bacongobbler/hello-rust:v1.0.0",
+		"ghcr.io/bacongobbler/hello-rust",
+		"ghcr.io/bacongobbler/hello-rust:v1.0.0",
+		"nginx:latest",
+		"nginx",
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc, func(t *testing.T) {
+			valid := validateImageReference(tc)
+			require.True(t, valid, "Expected image reference to be valid")
+		})
+
+	}
+}
