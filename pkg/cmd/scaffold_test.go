@@ -19,6 +19,7 @@ func TestScaffoldCmd(t *testing.T) {
 			opts: ScaffoldOptions{
 				from:     "ghcr.io/foo/example-app:v0.1.0",
 				replicas: 2,
+				executor: "containerd-shim-spin",
 			},
 			expected: "scaffold_image.yml",
 		},
@@ -27,6 +28,7 @@ func TestScaffoldCmd(t *testing.T) {
 			opts: ScaffoldOptions{
 				from:       "ghcr.io/foo/example-app:v0.1.0",
 				replicas:   2,
+				executor:   "containerd-shim-spin",
 				configfile: "testdata/runtime-config.toml",
 			},
 			expected: "scaffold_runtime_config.yml",
