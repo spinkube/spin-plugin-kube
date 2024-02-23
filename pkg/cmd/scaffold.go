@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -15,6 +16,7 @@ import (
 type ScaffoldOptions struct {
 	from       string
 	replicas   int32
+	executor   string
 	output     string
 	configfile string
 }
@@ -24,6 +26,7 @@ var scaffoldOpts = ScaffoldOptions{}
 type appConfig struct {
 	Name          string
 	Image         string
+	Executor      string
 	Replicas      int32
 	RuntimeConfig string
 }
@@ -35,7 +38,7 @@ metadata:
 spec:
   image: "{{ .Image }}"
   replicas: {{ .Replicas }}
-  executor: containerd-shim-spin
+  executor: {{ .Executor }}
 {{- if .RuntimeConfig }}
   runtimeConfig:
     loadFromSecret: {{ .Name }}-runtime-config
@@ -79,6 +82,18 @@ var scaffoldCmd = &cobra.Command{
 }
 
 func scaffold(opts ScaffoldOptions) ([]byte, error) {
+	// flag validation
+
+	// replica count must be greater than 0
+	if opts.replicas < 0 {
+		return nil, fmt.Errorf("replicas must be greater than 0")
+	}
+
+	// check that the image reference is valid
+	if !validateImageReference(opts.from) {
+		return nil, fmt.Errorf("invalid image reference")
+	}
+
 	reference := strings.Split(opts.from, ":")[0]
 	referenceParts := strings.Split(reference, "/")
 	name := referenceParts[len(referenceParts)-1]
@@ -87,6 +102,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		Name:     name,
 		Image:    opts.from,
 		Replicas: opts.replicas,
+		Executor: opts.executor,
 	}
 
 	if opts.configfile != "" {
@@ -112,9 +128,23 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	return output.Bytes(), nil
 }
 
+func validateImageReference(imageRef string) bool {
+	// This regex is designed to match strings that are valid image references, which include an optional registry (like
+	// "ghcr.io"), a repository name (like "bacongobbler/hello-rust"), and an optional tag (like "1.0.0").
+	//
+	// The regex is quite complex, but in general it's looking for sequences of alphanumeric characters, separated by
+	// periods, underscores, or hyphens, and optionally followed by a slash and more such sequences. The sequences can
+	// be repeated any number of times. The final sequence can optionally be followed by a colon and another sequence,
+	// representing the tag.
+	pattern := `^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$|^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?/([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$`
+	regex := regexp.MustCompile(pattern)
+	return regex.MatchString(imageRef)
+}
+
 func init() {
 	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Number of replicas for the spin app")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the Spin application")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.executor, "executor", "", "containerd-shim-spin", "The executor used to run the Spin application")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "path to runtime config file")
 
