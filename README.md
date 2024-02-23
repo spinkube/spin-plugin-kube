@@ -120,7 +120,7 @@ spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cp
 ```text
 IMPORTANT!
     CPU/memory requests are optional and will default to the CPU/memory limit if not set.
-    CPU/memory requests cannot be higher than their respective limit.
+    CPU/memory requests must be lower than their respective CPU/memory limit.
 ```
 
 Setting the target CPU utilization:
