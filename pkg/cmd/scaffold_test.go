@@ -54,6 +54,7 @@ func TestValidateImageReference_ValidImageReference(t *testing.T) {
 		"bacongobbler/hello-rust:v1.0.0",
 		"ghcr.io/bacongobbler/hello-rust",
 		"ghcr.io/bacongobbler/hello-rust:v1.0.0",
+		"ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
 		"nginx:latest",
 		"nginx",
 	}
