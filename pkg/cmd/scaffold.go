@@ -95,7 +95,7 @@ data:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: spinapp-autoscaler
+  name: {{ .Name }}-autoscaler
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
