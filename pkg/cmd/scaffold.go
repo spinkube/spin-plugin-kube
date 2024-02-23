@@ -117,7 +117,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ .TargetMemoryUtilizationPercentage }}
-{{- else }}
+{{- else if eq .Autoscaler "keda" }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
