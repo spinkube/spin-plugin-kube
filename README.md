@@ -96,3 +96,29 @@ Delete the app:
 ```sh
 kubectl delete spinapp hello-rust
 ```
+
+### Autoscaling support
+
+Autoscaling support can be enabled by setting `--enable-autoscaling` and by setting either a CPU or a memory limit (or both).
+
+```sh
+spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaling --cpu-limit 100m --memory-limit 128Mi
+```
+
+Setting min/max replicas:
+
+```sh
+spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaling --cpu-limit 100m --memory-limit 128Mi --min-replicas 1 --max-replicas 10
+```
+
+CPU/memory limits and CPU/memory requests can be set together:
+
+```sh
+spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaling --cpu-limit 100m --memory-limit 128Mi --cpu-request 50m --memory-request 64Mi
+```
+
+KEDA support is also available:
+
+```sh
+spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaling --cpu-limit 100m --memory-limit 128Mi --autoscaler keda
+```
