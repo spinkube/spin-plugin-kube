@@ -99,22 +99,22 @@ kubectl delete spinapp hello-rust
 
 ### Autoscaler support
 
-Autoscaler support can be enabled by setting `--enable-autoscaler` and by setting either a CPU or a memory limit (or both).
+Autoscaler support can be enabled by setting `--autoscaler` and by setting either a CPU or a memory limit (or both).
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi
 ```
 
 Setting min/max replicas:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi --min-replicas 1 --max-replicas 10
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --min-replicas 1 --max-replicas 10
 ```
 
 CPU/memory limits and CPU/memory requests can be set together:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi --cpu-request 50m --memory-request 64Mi
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --cpu-request 50m --memory-request 64Mi
 ```
 
 ```text
@@ -126,17 +126,17 @@ IMPORTANT!
 Setting the target CPU utilization:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-cpu-utilization 50
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-cpu-utilization 50
 ```
 
 Setting the target memory utilization:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-memory-utilization 50
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-memory-utilization 50
 ```
 
 KEDA support:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --enable-autoscaler --cpu-limit 100m --memory-limit 128Mi --autoscaler keda
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler keda --cpu-limit 100m --memory-limit 128Mi
 ```

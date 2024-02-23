@@ -20,7 +20,6 @@ type ScaffoldOptions struct {
 	executor                          string
 	output                            string
 	configfile                        string
-	enableAutoscaler                  bool
 	cpuLimit                          string
 	memoryLimit                       string
 	cpuRequest                        string
@@ -39,7 +38,6 @@ type appConfig struct {
 	Replicas                          int32
 	MaxReplicas                       int32
 	RuntimeConfig                     string
-	EnableAutoscaler                  bool
 	CpuLimit                          string
 	MemoryLimit                       string
 	CpuRequest                        string
@@ -56,7 +54,7 @@ metadata:
 spec:
   image: "{{ .Image }}"
   executor: {{ .Executor }}
-{{- if .EnableAutoscaler }}
+{{- if not (eq .Autoscaler "") }}
   enableAutoscaling: true
 {{- else }}
   replicas: {{ .Replicas }}
@@ -92,7 +90,7 @@ type: Opaque
 data:
   runtime-config.toml: {{ .RuntimeConfig }}
 {{- end }}
-{{- if .EnableAutoscaler }}
+{{- if not (eq .Autoscaler "") }}
 ---
 {{- if eq .Autoscaler "hpa" }}
 apiVersion: autoscaling/v2
@@ -178,11 +176,6 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		return nil, fmt.Errorf("replicas must be greater than 0")
 	}
 
-	// if autoscaling is enabled, max replicas must be set
-	if opts.enableAutoscaler && opts.maxReplicas < 0 {
-		return nil, fmt.Errorf("max replicas must be greater than 0")
-	}
-
 	// check that the image reference is valid
 	if !validateImageReference(opts.from) {
 		return nil, fmt.Errorf("invalid image reference")
@@ -191,15 +184,15 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	// validate autoscaling flags
 	//
 	// NOTE: --replicas refers to the minimum number of replicas
-	if opts.enableAutoscaler {
+	if opts.autoscaler != "" {
+		// autoscaler type must be a valid type
+		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
+			return nil, fmt.Errorf("autoscaler type must be either 'hpa' or 'keda'")
+		}
+
 		// max replicas must be greater than 0
 		if opts.maxReplicas < 0 {
 			return nil, fmt.Errorf("max replicas must be greater than 0")
-		}
-
-		// autoscaler type must be either "hpa" or "keda"
-		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("autoscaler type must be either 'hpa' or 'keda'")
 		}
 
 		// max replicas must be greater than min replicas
@@ -212,7 +205,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 			return nil, fmt.Errorf("cpu and memory limits must be set when autoscaling is enabled")
 		}
 
-		// TODO: cpu and memory requests cannot exceed their respective limits
+		// TODO: cpu and memory requests must be lower than their respective cpu/memory limit
 
 		// target cpu and memory utilization must be between 1 and 100
 		if opts.targetCpuUtilizationPercentage < 1 || opts.targetCpuUtilizationPercentage > 100 {
@@ -234,7 +227,6 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		Replicas:                          opts.replicas,
 		MaxReplicas:                       opts.maxReplicas,
 		Executor:                          opts.executor,
-		EnableAutoscaler:                  opts.enableAutoscaler,
 		CpuLimit:                          opts.cpuLimit,
 		MemoryLimit:                       opts.memoryLimit,
 		CpuRequest:                        opts.cpuRequest,
@@ -285,8 +277,7 @@ func init() {
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the spin app. Autoscaling must be enabled to use this flag")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaler-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
-	scaffoldCmd.Flags().BoolVar(&scaffoldOpts.enableAutoscaler, "enable-autoscaler", false, "Enable autoscaling support")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "hpa", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the Spin application")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the Spin application is allowed to use")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the Spin application. Used to determine which node the Spin application will run on")
