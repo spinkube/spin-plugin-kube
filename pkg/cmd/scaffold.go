@@ -27,6 +27,7 @@ type ScaffoldOptions struct {
 	memoryRequest                     string
 	targetCpuUtilizationPercentage    int32
 	targetMemoryUtilizationPercentage int32
+	autoscalerType                    string
 }
 
 var scaffoldOpts = ScaffoldOptions{}
@@ -45,6 +46,7 @@ type appConfig struct {
 	MemoryRequest                     string
 	TargetCpuUtilizationPercentage    int32
 	TargetMemoryUtilizationPercentage int32
+	AutoscalerType                    string
 }
 
 var manifestStr = `apiVersion: core.spinoperator.dev/v1
@@ -92,6 +94,7 @@ data:
 {{- end }}
 {{- if .EnableAutoscaling }}
 ---
+{{- if eq .AutoscalerType "hpa" }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -116,6 +119,28 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ .TargetMemoryUtilizationPercentage }}
+{{- else }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Name }}-autoscaler
+spec:
+  scaleTargetRef:
+	apiVersion: apps/v1
+	kind: Deployment
+    name: {{ .Name }}
+  minReplicaCount: {{ .Replicas }}
+  maxReplicaCount: {{ .MaxReplicas }}
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .TargetCpuUtilizationPercentage }}"
+	- type: memory
+	  metricType: Utilization
+	  metadata:
+	    value: "{{ .TargetMemoryUtilizationPercentage }}"
+{{- end }}
 {{- end }}
 `
 
@@ -172,6 +197,11 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 			return nil, fmt.Errorf("max replicas must be greater than 0")
 		}
 
+		// autoscaler type must be either "hpa" or "keda"
+		if opts.autoscalerType != "hpa" && opts.autoscalerType != "keda" {
+			return nil, fmt.Errorf("autoscaler type must be either 'hpa' or 'keda'")
+		}
+
 		// max replicas must be greater than min replicas
 		if opts.maxReplicas < opts.replicas {
 			return nil, fmt.Errorf("max replicas must be equal to or greater than min replicas")
@@ -211,6 +241,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		MemoryRequest:                     opts.memoryRequest,
 		TargetCpuUtilizationPercentage:    opts.targetCpuUtilizationPercentage,
 		TargetMemoryUtilizationPercentage: opts.targetMemoryUtilizationPercentage,
+		AutoscalerType:                    opts.autoscalerType,
 	}
 
 	if opts.configfile != "" {
@@ -255,6 +286,7 @@ func init() {
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaling-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaling-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().BoolVar(&scaffoldOpts.enableAutoscaling, "enable-autoscaling", false, "Enable autoscaling support")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscalerType, "autoscaler-type", "hpa", "The autoscaler type to use. Valid values are 'hpa' and 'keda'")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the Spin application")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the Spin application is allowed to use")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the Spin application. Used to determine which node the Spin application will run on")
