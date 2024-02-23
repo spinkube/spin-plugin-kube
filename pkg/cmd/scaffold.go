@@ -84,11 +84,6 @@ var scaffoldCmd = &cobra.Command{
 func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	// flag validation
 
-	// must be a valid executor
-	if opts.executor != "containerd-shim-spin" && opts.executor != "cyclotron" {
-		return nil, fmt.Errorf("executor must be either containerd-shim-spin or cyclotron")
-	}
-
 	// replica count must be greater than 0
 	if opts.replicas < 0 {
 		return nil, fmt.Errorf("replicas must be greater than 0")
