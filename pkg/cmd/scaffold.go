@@ -14,37 +14,37 @@ import (
 )
 
 type ScaffoldOptions struct {
-	from                              string
-	replicas                          int32
-	maxReplicas                       int32
-	executor                          string
-	output                            string
+	autoscaler                        string
 	configfile                        string
 	cpuLimit                          string
-	memoryLimit                       string
 	cpuRequest                        string
+	executor                          string
+	from                              string
+	maxReplicas                       int32
+	memoryLimit                       string
 	memoryRequest                     string
+	output                            string
+	replicas                          int32
 	targetCpuUtilizationPercentage    int32
 	targetMemoryUtilizationPercentage int32
-	autoscaler                        string
 }
 
 var scaffoldOpts = ScaffoldOptions{}
 
 type appConfig struct {
-	Name                              string
-	Image                             string
-	Executor                          string
-	Replicas                          int32
-	MaxReplicas                       int32
-	RuntimeConfig                     string
+	Autoscaler                        string
 	CpuLimit                          string
-	MemoryLimit                       string
 	CpuRequest                        string
+	Executor                          string
+	Image                             string
+	MaxReplicas                       int32
+	MemoryLimit                       string
 	MemoryRequest                     string
+	Name                              string
+	Replicas                          int32
+	RuntimeConfig                     string
 	TargetCpuUtilizationPercentage    int32
 	TargetMemoryUtilizationPercentage int32
-	Autoscaler                        string
 }
 
 var manifestStr = `apiVersion: core.spinoperator.dev/v1
