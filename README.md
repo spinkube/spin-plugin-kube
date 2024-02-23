@@ -99,7 +99,7 @@ kubectl delete spinapp hello-rust
 
 ### Autoscaler support
 
-Autoscaler support can be enabled by setting `--autoscaler` and by setting either a CPU or a memory limit (or both).
+Autoscaler support can be enabled by setting `--autoscaler` and by setting a CPU limit and a memory limit.
 
 ```sh
 spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi
