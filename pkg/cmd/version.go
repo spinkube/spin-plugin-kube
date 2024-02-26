@@ -55,7 +55,7 @@ func getServerVersion() (string, error) {
 
 	serverVersion, err := client.ServerVersion()
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
 	return serverVersion.String(), nil
