@@ -14,21 +14,23 @@ import (
 )
 
 type ScaffoldOptions struct {
-	from       string
-	replicas   int32
-	executor   string
-	output     string
-	configfile string
+	from             string
+	replicas         int32
+	executor         string
+	output           string
+	configfile       string
+	imagePullSecrets []string
 }
 
 var scaffoldOpts = ScaffoldOptions{}
 
 type appConfig struct {
-	Name          string
-	Image         string
-	Executor      string
-	Replicas      int32
-	RuntimeConfig string
+	Name             string
+	Image            string
+	Executor         string
+	Replicas         int32
+	RuntimeConfig    string
+	ImagePullSecrets []string
 }
 
 var manifestStr = `apiVersion: core.spinoperator.dev/v1
@@ -42,7 +44,13 @@ spec:
 {{- if .RuntimeConfig }}
   runtimeConfig:
     loadFromSecret: {{ .Name }}-runtime-config
-  {{- end }}
+{{- end }}
+{{- if len .ImagePullSecrets }}
+  imagePullSecrets:
+{{- range $index, $secret := .ImagePullSecrets }}
+    - name: {{ $secret -}}
+{{ end }}
+{{- end }}
 {{ if .RuntimeConfig -}}
 ---
 apiVersion: v1
@@ -99,10 +107,11 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	name := referenceParts[len(referenceParts)-1]
 
 	config := appConfig{
-		Name:     name,
-		Image:    opts.from,
-		Replicas: opts.replicas,
-		Executor: opts.executor,
+		Name:             name,
+		Image:            opts.from,
+		Replicas:         opts.replicas,
+		Executor:         opts.executor,
+		ImagePullSecrets: opts.imagePullSecrets,
 	}
 
 	if opts.configfile != "" {
@@ -147,6 +156,7 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.executor, "executor", "", "containerd-shim-spin", "The executor used to run the Spin application")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "path to runtime config file")
+	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "secrets in the same namespace to use for pulling the image")
 
 	scaffoldCmd.MarkFlagRequired("from")
 
