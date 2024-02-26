@@ -33,6 +33,13 @@ spin plugins update
 spin plugins install pluginify --yes
 ```
 
+Fetch the plugin:
+
+```sh
+git clone git@github.com:spinkube/spin-plugin-k8s.git
+cd spin-plugin-k8s
+```
+
 Compile and install the plugin:
 
 ```sh
@@ -43,7 +50,7 @@ make install
 ## Prerequisites
 
 Ensure spin-operator is installed in your Kubernetes cluster. See the [spin-operator Quickstart
-Guide](https://github.com/spinkube/spin-operator/blob/main/documentation/content/quickstart.md).
+Guide](https://github.com/spinkube/documentation/blob/main/content/en/docs/spin-operator/quickstart/_index.md).
 
 ## Usage
 
