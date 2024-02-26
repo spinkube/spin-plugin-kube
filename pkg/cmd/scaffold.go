@@ -173,12 +173,12 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 
 	// replica count must be greater than 0
 	if opts.replicas < 0 {
-		return nil, fmt.Errorf("replicas must be greater than 0")
+		return nil, fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
 	}
 
 	// check that the image reference is valid
 	if !validateImageReference(opts.from) {
-		return nil, fmt.Errorf("invalid image reference")
+		return nil, fmt.Errorf("invalid image reference provided: '%s'", opts.from)
 	}
 
 	// validate autoscaling flags
@@ -187,11 +187,11 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if opts.autoscaler != "" {
 		// autoscaler type must be a valid type
 		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("the autoscaler type must be either 'hpa' or 'keda'")
+			return nil, fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
 		}
 
 		// max replicas must be equal to or greater than 0 (scale down to 0 replicas is allowed)
-		if opts.maxReplicas <= 0 {
+		if opts.maxReplicas < 0 {
 			return nil, fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
 		}
 
@@ -201,19 +201,23 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		}
 
 		// cpu and memory limits must be set
-		if opts.cpuLimit == "" || opts.memoryLimit == "" {
-			return nil, fmt.Errorf("cpu and memory limits must be set when autoscaling is enabled")
+		if opts.cpuLimit == "" {
+			return nil, fmt.Errorf("cpu limits must be set when autoscaling is enabled")
+		}
+
+		if opts.memoryLimit == "" {
+			return nil, fmt.Errorf("memory limits must be set when autoscaling is enabled")
 		}
 
 		// TODO: cpu and memory requests must be lower than their respective cpu/memory limit
 
 		// target cpu and memory utilization must be between 1 and 100
 		if opts.targetCpuUtilizationPercentage < 1 || opts.targetCpuUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target cpu utilization must be between 0 and 100")
+			return nil, fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCpuUtilizationPercentage)
 		}
 
 		if opts.targetMemoryUtilizationPercentage < 1 || opts.targetMemoryUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target memory utilization must be between 0 and 100")
+			return nil, fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
 		}
 	}
 
