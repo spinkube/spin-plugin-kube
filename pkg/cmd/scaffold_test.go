@@ -87,7 +87,6 @@ func TestFlagValidation(t *testing.T) {
 				targetCpuUtilizationPercentage:    1,
 				targetMemoryUtilizationPercentage: 1,
 			},
-			expectedError: "",
 		},
 		{
 			name: "valid KEDA autoscaling options",
@@ -102,7 +101,6 @@ func TestFlagValidation(t *testing.T) {
 				targetCpuUtilizationPercentage:    1,
 				targetMemoryUtilizationPercentage: 1,
 			},
-			expectedError: "",
 		},
 		{
 			name: "invalid replica count",
@@ -192,11 +190,11 @@ func TestFlagValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := scaffold(tc.opts)
 
-			if tc.expectedError != "" {
+			if tc.expectedError == "" {
+				require.Nil(t, err)
+			} else {
 				require.NotNil(t, err)
 				require.Equal(t, tc.expectedError, err.Error())
-			} else {
-				require.Nil(t, err)
 			}
 		})
 	}
