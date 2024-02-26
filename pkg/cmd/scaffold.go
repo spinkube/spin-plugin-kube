@@ -187,17 +187,17 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if opts.autoscaler != "" {
 		// autoscaler type must be a valid type
 		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("autoscaler type must be either 'hpa' or 'keda'")
+			return nil, fmt.Errorf("the autoscaler type must be either 'hpa' or 'keda'")
 		}
 
-		// max replicas must be greater than 0
-		if opts.maxReplicas < 0 {
-			return nil, fmt.Errorf("max replicas must be greater than 0")
+		// max replicas must be equal to or greater than 0 (scale down to 0 replicas is allowed)
+		if opts.maxReplicas <= 0 {
+			return nil, fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
 		}
 
-		// max replicas must be greater than min replicas
-		if opts.maxReplicas < opts.replicas {
-			return nil, fmt.Errorf("max replicas must be equal to or greater than min replicas")
+		// min replicas must be less than or equal to max replicas
+		if opts.replicas > opts.maxReplicas {
+			return nil, fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
 		}
 
 		// cpu and memory limits must be set
