@@ -96,3 +96,55 @@ Delete the app:
 ```sh
 kubectl delete spinapp hello-rust
 ```
+
+### Working with images from private registries
+
+Support for pulling images from private registries can be enabled by using `--image-pull-secret <secret-name>` flag, where `<secret-name>` is a secret of type [`docker-registry`](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) in same namespace as your SpinApp.
+
+To enable multiple private registries, you can provide the flag `--image-pull-secret` multiple times with secret for each registry that you wish to use. 
+
+Create a secret with credentials for private registry
+
+```sh
+$) kubectl create secret docker-registry registry-credentials \
+  --docker-server=ghcr.io \
+  --docker-username=bacongobbler \
+  --docker-password=github-token
+
+secret/registry-credentials created
+```
+
+Verify that the secret is created
+
+```sh
+$) kubectl get secret registry-credentials -o yaml
+
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoiYmFjb25nb2JibGVyIiwicGFzc3dvcmQiOiJnaXRodWItdG9rZW4iLCJhdXRoIjoiWW1GamIyNW5iMkppYkdWeU9tZHBkR2gxWWkxMGIydGxiZz09In19fQ==
+kind: Secret
+metadata:
+  creationTimestamp: "2024-02-27T02:18:53Z"
+  name: registry-credentials
+  namespace: default
+  resourceVersion: "162287"
+  uid: 2e12ddd1-919d-44b5-b6cc-c3cd5c09fcec
+type: kubernetes.io/dockerconfigjson
+```
+
+Use the secret when scaffolding the SpinApp
+
+```sh
+$) spin k8s scaffold --from bacongobbler/hello-rust:latest --image-pull-secret registry-credentials
+
+apiVersion: core.spinoperator.dev/v1
+kind: SpinApp
+metadata:
+  name: hello-rust
+spec:
+  image: "bacongobbler/hello-rust:latest"
+  replicas: 2
+  executor: containerd-shim-spin
+  imagePullSecrets:
+    - name: registry-credentials
+```
