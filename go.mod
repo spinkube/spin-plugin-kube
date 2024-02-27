@@ -1,6 +1,8 @@
 module github.com/spinkube/spin-plugin-k8s
 
-go 1.21
+go 1.22
+
+toolchain go1.22.0
 
 require (
 	github.com/gosuri/uitable v0.0.4
