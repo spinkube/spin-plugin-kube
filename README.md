@@ -108,7 +108,7 @@ spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-l
 Setting min/max replicas:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --min-replicas 1 --max-replicas 10
+spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --replicas 1 --max-replicas 10
 ```
 
 CPU/memory limits and CPU/memory requests can be set together:
