@@ -18,7 +18,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: "1.21"
+        go-version: "1.22.x"
 
     - name: Setup Private Git Repo Access
       run: echo "machine github.com login bacongobbler password ${GITHUB_TOKEN}" > $HOME/.netrc
