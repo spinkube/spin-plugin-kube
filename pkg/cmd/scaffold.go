@@ -20,6 +20,7 @@ type ScaffoldOptions struct {
 	cpuRequest                        string
 	executor                          string
 	from                              string
+	imagePullSecrets                  []string
 	maxReplicas                       int32
 	memoryLimit                       string
 	memoryRequest                     string
@@ -37,6 +38,7 @@ type appConfig struct {
 	CpuRequest                        string
 	Executor                          string
 	Image                             string
+	ImagePullSecrets                  []string
 	MaxReplicas                       int32
 	MemoryLimit                       string
 	MemoryRequest                     string
@@ -77,6 +79,12 @@ spec:
       memory: {{ .MemoryRequest }}
     {{- end }}
 {{- end }}
+{{- end }}
+{{- if len .ImagePullSecrets }}
+  imagePullSecrets:
+{{- range $index, $secret := .ImagePullSecrets }}
+    - name: {{ $secret -}}
+{{ end }}
 {{- end }}
 {{- if .RuntimeConfig }}
   runtimeConfig:
@@ -238,6 +246,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		TargetCpuUtilizationPercentage:    opts.targetCpuUtilizationPercentage,
 		TargetMemoryUtilizationPercentage: opts.targetMemoryUtilizationPercentage,
 		Autoscaler:                        opts.autoscaler,
+		ImagePullSecrets:                  opts.imagePullSecrets,
 	}
 
 	if opts.configfile != "" {
@@ -290,6 +299,7 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the Spin application")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "path to runtime config file")
+	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "secrets in the same namespace to use for pulling the image")
 
 	scaffoldCmd.MarkFlagRequired("from")
 

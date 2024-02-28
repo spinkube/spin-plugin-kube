@@ -33,6 +33,28 @@ func TestScaffoldOutput(t *testing.T) {
 			},
 			expected: "scaffold_runtime_config.yml",
 		},
+		{
+			name: "one image pull secret is provided",
+			opts: ScaffoldOptions{
+				from:             "ghcr.io/foo/example-app:v0.1.0",
+				replicas:         2,
+				executor:         "containerd-shim-spin",
+				configfile:       "testdata/runtime-config.toml",
+				imagePullSecrets: []string{"secret-name"},
+			},
+			expected: "one_image_secret.yml",
+		},
+		{
+			name: "multiple image pull secrets are provided",
+			opts: ScaffoldOptions{
+				from:             "ghcr.io/foo/example-app:v0.1.0",
+				replicas:         2,
+				executor:         "containerd-shim-spin",
+				configfile:       "testdata/runtime-config.toml",
+				imagePullSecrets: []string{"secret-name", "secret-name-2"},
+			},
+			expected: "multiple_image_secrets.yml",
+		},
 	}
 
 	for _, tc := range testcases {
