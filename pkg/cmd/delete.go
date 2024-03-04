@@ -12,7 +12,7 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:    "delete <name>",
-	Short:  "Delete application",
+	Short:  "Delete the application",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
