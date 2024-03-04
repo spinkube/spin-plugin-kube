@@ -152,7 +152,7 @@ spec:
 
 var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
-	Short: "scaffold SpinApp manifest",
+	Short: "Scaffold application manifest",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		content, err := scaffold(scaffoldOpts)
 		if err != nil {
@@ -165,7 +165,7 @@ var scaffoldCmd = &cobra.Command{
 				return err
 			}
 
-			log.Printf("\nSpinApp manifest saved to %s\n", scaffoldOpts.output)
+			log.Printf("\nApplication manifest saved to %s\n", scaffoldOpts.output)
 			return nil
 
 		}
@@ -286,20 +286,20 @@ func validateImageReference(imageRef string) bool {
 }
 
 func init() {
-	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Minimum number of replicas for the spin app")
-	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the spin app. Autoscaling must be enabled to use this flag")
+	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Minimum number of replicas for the application")
+	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the application. Autoscaling must be enabled to use this flag")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaler-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the Spin application")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the Spin application is allowed to use")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the Spin application. Used to determine which node the Spin application will run on")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryLimit, "memory-limit", "", "The maximum amount of memory the Spin application is allowed to use")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryRequest, "memory-request", "", "The amount of memory requested by the Spin application. Used to determine which node the Spin application will run on")
-	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the Spin application")
-	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "path to file to write manifest yaml")
-	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "path to runtime config file")
-	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "secrets in the same namespace to use for pulling the image")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the application")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the application is allowed to use")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the application. Used to determine which node the application will run on")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryLimit, "memory-limit", "", "The maximum amount of memory the application is allowed to use")
+	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryRequest, "memory-request", "", "The amount of memory requested by the application. Used to determine which node the application will run on")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the application")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "Path to file to write manifest yaml")
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
+	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 
 	scaffoldCmd.MarkFlagRequired("from")
 

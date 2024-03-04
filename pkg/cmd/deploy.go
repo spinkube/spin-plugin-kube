@@ -20,7 +20,7 @@ var (
 
 var deployCmd = &cobra.Command{
 	Use:    "deploy",
-	Short:  "deploy spin app",
+	Short:  "Deploy application to Kubernetes",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		reference := strings.Split(artifact, ":")[0]
@@ -60,9 +60,9 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	deployCmd.Flags().BoolVar(&dryRun, "dry-run", false, "only print the SpinApp resource file without deploying")
-	deployCmd.Flags().Int32VarP(&replicas, "replicas", "r", 2, "Number of replicas for the spin app")
-	deployCmd.Flags().StringVarP(&artifact, "from", "f", "", "Reference in the registry of the Spin application")
+	deployCmd.Flags().BoolVar(&dryRun, "dry-run", false, "only print the kubernetes manifest without deploying")
+	deployCmd.Flags().Int32VarP(&replicas, "replicas", "r", 2, "Number of replicas for the application")
+	deployCmd.Flags().StringVarP(&artifact, "from", "f", "", "Reference in the registry of the application")
 	deployCmd.MarkFlagRequired("from")
 
 	configFlags.AddFlags(deployCmd.Flags())

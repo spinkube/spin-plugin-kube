@@ -11,8 +11,8 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:    "delete app-name",
-	Short:  "Delete app",
+	Use:    "delete <name>",
+	Short:  "Delete application",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
@@ -21,7 +21,7 @@ var deleteCmd = &cobra.Command{
 		}
 
 		if appName == "" {
-			return fmt.Errorf("no app name specified to delete")
+			return fmt.Errorf("no application name specified to delete")
 		}
 
 		yes, err := cmd.Flags().GetBool("yes")
@@ -48,7 +48,7 @@ var deleteCmd = &cobra.Command{
 		err = k8simpl.DeleteSpinApp(context.TODO(), okey)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
-				fmt.Printf("Could not find app with name %s\n", appName)
+				fmt.Printf("Could not find application with name %s\n", appName)
 				os.Exit(1)
 			}
 
@@ -64,6 +64,6 @@ var deleteCmd = &cobra.Command{
 func init() {
 	configFlags.AddFlags(deleteCmd.Flags())
 
-	deleteCmd.Flags().BoolP("yes", "y", false, "specify --yes to immediately delete the resource")
+	deleteCmd.Flags().BoolP("yes", "y", false, "specify --yes to immediately delete the application")
 	rootCmd.AddCommand(deleteCmd)
 }
