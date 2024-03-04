@@ -18,8 +18,8 @@ import (
 const spinAppPort = "80"
 
 var connectCmd = &cobra.Command{
-	Use:    "connect [<app-name>]",
-	Short:  "connect to spin app locally",
+	Use:    "connect <name>",
+	Short:  "Establish a connection to a running application",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
@@ -36,7 +36,7 @@ var connectCmd = &cobra.Command{
 		labelSelector, _ := cmd.Flags().GetString("label-selector")
 
 		if appName == "" && fieldSelector == "" && labelSelector == "" {
-			return fmt.Errorf("either one of app-name or fieldSelector or labelSelector is required")
+			return fmt.Errorf("either one of <name>, --field-selector, or --label-selector is required")
 		}
 
 		getPodTimeout, err := cmdutil.GetPodRunningTimeoutFlag(cmd)
@@ -58,7 +58,7 @@ var connectCmd = &cobra.Command{
 		}
 
 		if len(resp.Items) == 0 {
-			return fmt.Errorf("no active deployment found for SpinApp")
+			return fmt.Errorf("no active deployment found for the given application name or selector")
 		}
 
 		var deploy appsv1.Deployment
@@ -107,7 +107,7 @@ func init() {
 	cmdutil.AddPodRunningTimeoutFlag(connectCmd, 30*time.Second)
 	configFlags.AddFlags(connectCmd.Flags())
 
-	connectCmd.Flags().StringP("local-port", "p", "", "local port to listen on when connecting to SpinApp")
+	connectCmd.Flags().StringP("local-port", "p", "", "The local port to listen on when connecting to SpinApp")
 	connectCmd.Flags().String("field-selector", "", "Selector (field query) to filter on, supports '=', '==', and '!='.(e.g. --field-selector key1=value1,key2=value2). The server only supports a limited number of field queries per type.")
 	connectCmd.Flags().StringP("selector", "l", "", "Selector (label query) to filter on, supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2). Matching objects must satisfy all of the specified label constraints.")
 

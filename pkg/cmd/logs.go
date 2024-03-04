@@ -11,8 +11,8 @@ import (
 var logOpts *logs.LogsOptions
 
 var logsCmd = &cobra.Command{
-	Use:    "logs [<app-name>]",
-	Short:  "print the logs for a SpinApp",
+	Use:    "logs <name>",
+	Short:  "Display application logs",
 	Hidden: isExperimentalFlagNotSet,
 	Run: func(cmd *cobra.Command, args []string) {
 		var appName string

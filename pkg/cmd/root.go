@@ -27,7 +27,7 @@ var rootCmd = newRootCmd()
 func newRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:     "k8s",
-		Short:   "Manage apps running on Kubernetes",
+		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			namespace = getNamespace(configFlags)

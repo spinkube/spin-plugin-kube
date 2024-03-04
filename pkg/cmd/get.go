@@ -9,8 +9,8 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:    "get [app-name]",
-	Short:  "Display detailed information about an app",
+	Use:    "get <name>",
+	Short:  "Display detailed application information",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var appName string
