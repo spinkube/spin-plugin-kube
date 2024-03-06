@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/spinkube/spin-plugin-k8s/pkg/cmd"
+	"github.com/spinkube/spin-plugin-kube/pkg/cmd"
 )
 
 func main() {

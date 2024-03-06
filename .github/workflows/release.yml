@@ -40,7 +40,7 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         gh release delete canary --cleanup-tag
-        gh release create canary dist/spin-plugin-k8s*.tar.gz \
+        gh release create canary dist/spin-plugin-kube*.tar.gz \
           --title canary \
           --prerelease \
           --notes-file - <<- EOF

@@ -3,4 +3,4 @@
 
 # output from `spin pluginify --install`
 *.tar.gz
-k8s.json
+kube.json

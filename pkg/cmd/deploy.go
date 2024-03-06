@@ -49,7 +49,7 @@ var deployCmd = &cobra.Command{
 			return nil
 		}
 
-		err := k8simpl.ApplySpinApp(context.TODO(), &spinapp)
+		err := kubeImpl.ApplySpinApp(context.TODO(), &spinapp)
 		if err != nil {
 			return err
 		}

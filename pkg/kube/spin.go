@@ -1,4 +1,4 @@
-package k8s
+package kube
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const FieldManager = "spin-k8s-plugin"
+const FieldManager = "spin-plugin-kube"
 
 type Impl struct {
 	kubeclient  client.Client

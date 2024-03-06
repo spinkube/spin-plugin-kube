@@ -12,7 +12,7 @@ var listCmd = &cobra.Command{
 	Short:  "List applications",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		appsResp, err := k8simpl.ListSpinApps(context.TODO(), namespace)
+		appsResp, err := kubeImpl.ListSpinApps(context.TODO(), namespace)
 		if err != nil {
 			return err
 		}
