@@ -49,7 +49,7 @@ type appConfig struct {
 	TargetMemoryUtilizationPercentage int32
 }
 
-var manifestStr = `apiVersion: core.spinoperator.dev/v1
+var manifestStr = `apiVersion: core.spinoperator.dev/v1alpha1
 kind: SpinApp
 metadata:
   name: {{ .Name }}

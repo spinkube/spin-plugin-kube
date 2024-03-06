@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	spinv1 "github.com/spinkube/spin-operator/api/v1"
+	spinv1alpha1 "github.com/spinkube/spin-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -22,7 +22,7 @@ func NewCommandFactory() (cmdutil.Factory, genericclioptions.IOStreams) {
 func getRuntimeClient() (client.Client, error) {
 	var scheme = runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(spinv1.AddToScheme(scheme))
+	utilruntime.Must(spinv1alpha1.AddToScheme(scheme))
 
 	config, err := configFlags.ToRESTConfig()
 	if err != nil {
