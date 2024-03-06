@@ -45,7 +45,7 @@ var deleteCmd = &cobra.Command{
 			Name:      appName,
 		}
 
-		err = k8simpl.DeleteSpinApp(context.TODO(), okey)
+		err = kubeImpl.DeleteSpinApp(context.TODO(), okey)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				fmt.Printf("Could not find application with name %s\n", appName)

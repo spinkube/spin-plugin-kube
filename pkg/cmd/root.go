@@ -7,7 +7,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/spinkube/spin-plugin-k8s/pkg/k8s"
+	"github.com/spinkube/spin-plugin-kube/pkg/kube"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -17,7 +17,7 @@ var (
 	appNameFromCurrentDirContext = ""
 	configFlags                  = genericclioptions.NewConfigFlags(true)
 	namespace                    string
-	k8simpl                      *k8s.Impl
+	kubeImpl                     *kube.Impl
 	isExperimentalFlagNotSet     = os.Getenv("SPIN_EXPERIMENTAL") == ""
 )
 
@@ -26,7 +26,7 @@ var rootCmd = newRootCmd()
 
 func newRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:     "k8s",
+		Use:     "kube",
 		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -36,7 +36,7 @@ func newRootCmd() *cobra.Command {
 				return err
 			}
 
-			k8simpl = k8s.New(k8sclient, configFlags)
+			kubeImpl = kube.New(k8sclient, configFlags)
 
 			appNameFromCurrentDirContext, err = initAppNameFromCurrentDirContext()
 			if err != nil {
@@ -93,7 +93,7 @@ func getNamespace(flags *genericclioptions.ConfigFlags) string {
 }
 
 func initAppNameFromCurrentDirContext() (string, error) {
-	if strings.ToLower(os.Getenv("SPIN_K8S_DISABLE_DIR_CONTEXT")) == "true" {
+	if strings.ToLower(os.Getenv("SPIN_KUBE_DISABLE_DIR_CONTEXT")) == "true" {
 		return "", nil
 	}
 

@@ -27,7 +27,7 @@ var getCmd = &cobra.Command{
 			Name:      appName,
 		}
 
-		app, err := k8simpl.GetSpinApp(context.TODO(), okey)
+		app, err := kubeImpl.GetSpinApp(context.TODO(), okey)
 		if err != nil {
 			return err
 		}

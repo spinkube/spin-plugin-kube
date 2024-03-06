@@ -1,4 +1,4 @@
-# Spin k8s plugin
+# spin kube plugin
 
 A [Spin plugin](https://github.com/fermyon/spin-plugins) for interacting with Kubernetes.
 
@@ -8,7 +8,7 @@ Install the stable release:
 
 ```sh
 spin plugins update
-spin plugins install k8s
+spin plugins install kube
 ```
 
 ### Canary release
@@ -16,7 +16,7 @@ spin plugins install k8s
 For the canary release:
 
 ```sh
-spin plugins install --url https://github.com/spinkube/spin-plugin-k8s/releases/download/canary/k8s.json
+spin plugins install --url https://github.com/spinkube/spin-plugin-kube/releases/download/canary/spin-kube.json
 ```
 
 The canary release may not be stable, with some features still in progress.
@@ -36,8 +36,8 @@ spin plugins install pluginify --yes
 Fetch the plugin:
 
 ```sh
-git clone git@github.com:spinkube/spin-plugin-k8s.git
-cd spin-plugin-k8s
+git clone git@github.com:spinkube/spin-plugin-kube.git
+cd spin-plugin-kube
 ```
 
 Compile and install the plugin:
@@ -83,7 +83,7 @@ spin registry push bacongobbler/hello-rust:latest
 Deploy to Kubernetes:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest | kubectl create -f -
+spin kube scaffold --from bacongobbler/hello-rust:latest | kubectl create -f -
 ```
 
 View your application:
@@ -92,10 +92,10 @@ View your application:
 kubectl get spinapps
 ```
 
-`spin k8s scaffold` deploys two replicas by default. You can change this with the `--replicas` flag:
+`spin kube scaffold` deploys two replicas by default. You can change this with the `--replicas` flag:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --replicas 3 | kubectl apply -f -
+spin kube scaffold --from bacongobbler/hello-rust:latest --replicas 3 | kubectl apply -f -
 ```
 
 Delete the app:
@@ -109,19 +109,19 @@ kubectl delete spinapp hello-rust
 Autoscaler support can be enabled by setting `--autoscaler` and by setting a CPU limit and a memory limit.
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi
 ```
 
 Setting min/max replicas:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --replicas 1 --max-replicas 10
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --replicas 1 --max-replicas 10
 ```
 
 CPU/memory limits and CPU/memory requests can be set together:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --cpu-request 50m --memory-request 64Mi
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --cpu-request 50m --memory-request 64Mi
 ```
 
 ```text
@@ -133,26 +133,26 @@ IMPORTANT!
 Setting the target CPU utilization:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-cpu-utilization 50
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-cpu-utilization 50
 ```
 
 Setting the target memory utilization:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-memory-utilization 50
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler hpa --cpu-limit 100m --memory-limit 128Mi --autoscaler-target-memory-utilization 50
 ```
 
 KEDA support:
 
 ```sh
-spin k8s scaffold --from bacongobbler/hello-rust:latest --autoscaler keda --cpu-limit 100m --memory-limit 128Mi
+spin kube scaffold --from bacongobbler/hello-rust:latest --autoscaler keda --cpu-limit 100m --memory-limit 128Mi
 ```
 
 ### Working with images from private registries
 
 Support for pulling images from private registries can be enabled by using `--image-pull-secret <secret-name>` flag, where `<secret-name>` is a secret of type [`docker-registry`](https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets) in same namespace as your SpinApp.
 
-To enable multiple private registries, you can provide the flag `--image-pull-secret` multiple times with secret for each registry that you wish to use. 
+To enable multiple private registries, you can provide the flag `--image-pull-secret` multiple times with secret for each registry that you wish to use.
 
 Create a secret with credentials for private registry
 
@@ -186,7 +186,7 @@ type: kubernetes.io/dockerconfigjson
 Use the secret when scaffolding the SpinApp
 
 ```sh
-$) spin k8s scaffold --from bacongobbler/hello-rust:latest --image-pull-secret registry-credentials
+$) spin kube scaffold --from bacongobbler/hello-rust:latest --image-pull-secret registry-credentials
 
 apiVersion: core.spinoperator.dev/v1
 kind: SpinApp

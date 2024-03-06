@@ -1,4 +1,4 @@
-module github.com/spinkube/spin-plugin-k8s
+module github.com/spinkube/spin-plugin-kube
 
 go 1.22
 
