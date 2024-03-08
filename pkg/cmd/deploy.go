@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	spinv1 "github.com/spinkube/spin-operator/api/v1"
+	spinv1alpha1 "github.com/spinkube/spin-operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/printers"
 )
@@ -27,16 +27,16 @@ var deployCmd = &cobra.Command{
 		referenceParts := strings.Split(reference, "/")
 		name := referenceParts[len(referenceParts)-1]
 
-		spinapp := spinv1.SpinApp{
+		spinapp := spinv1alpha1.SpinApp{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: namespace,
 			},
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: "core.spinoperator.dev/v1",
+				APIVersion: "core.spinoperator.dev/v1alpha1",
 				Kind:       "SpinApp",
 			},
-			Spec: spinv1.SpinAppSpec{
+			Spec: spinv1alpha1.SpinAppSpec{
 				Replicas: replicas,
 				Image:    artifact,
 				Executor: "containerd-shim-spin",
