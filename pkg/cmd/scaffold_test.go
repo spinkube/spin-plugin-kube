@@ -79,6 +79,7 @@ func TestValidateImageReference_ValidImageReference(t *testing.T) {
 		"ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
 		"nginx:latest",
 		"nginx",
+		"ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
 	}
 
 	for _, tc := range testCases {
@@ -87,6 +88,48 @@ func TestValidateImageReference_ValidImageReference(t *testing.T) {
 			require.True(t, valid, "Expected image reference to be valid")
 		})
 
+	}
+}
+
+func TestGetNameFromImageReference(t *testing.T) {
+	testCases := []struct {
+		reference string
+		name      string
+	}{
+		{
+			reference: "bacongobbler/hello-rust",
+			name:      "hello-rust",
+		}, {
+			reference: "bacongobbler/hello-rust:v1.0.0",
+			name:      "hello-rust",
+		}, {
+
+			reference: "ghcr.io/bacongobbler/hello-rust",
+			name:      "hello-rust",
+		}, {
+			reference: "ghcr.io/bacongobbler/hello-rust:v1.0.0",
+			name:      "hello-rust",
+		}, {
+			reference: "ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
+			name:      "runtime-class-manager",
+		}, {
+			reference: "nginx:latest",
+			name:      "nginx",
+		}, {
+			reference: "nginx",
+			name:      "nginx",
+		}, {
+			reference: "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
+			name:      "hello-spinkube",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.reference, func(t *testing.T) {
+			actualName, err := getNameFromImageReference(tc.reference)
+			require.Nil(t, err)
+			require.Equal(t, tc.name, actualName, "Expected image name from reference")
+		})
 	}
 }
 

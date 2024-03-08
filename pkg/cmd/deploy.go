@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	spinv1alpha1 "github.com/spinkube/spin-operator/api/v1alpha1"
@@ -23,9 +22,10 @@ var deployCmd = &cobra.Command{
 	Short:  "Deploy application to Kubernetes",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		reference := strings.Split(artifact, ":")[0]
-		referenceParts := strings.Split(reference, "/")
-		name := referenceParts[len(referenceParts)-1]
+		name, err := getNameFromImageReference(artifact)
+		if err != nil {
+			return err
+		}
 
 		spinapp := spinv1alpha1.SpinApp{
 			ObjectMeta: metav1.ObjectMeta{
@@ -49,7 +49,7 @@ var deployCmd = &cobra.Command{
 			return nil
 		}
 
-		err := kubeImpl.ApplySpinApp(context.TODO(), &spinapp)
+		err = kubeImpl.ApplySpinApp(context.TODO(), &spinapp)
 		if err != nil {
 			return err
 		}

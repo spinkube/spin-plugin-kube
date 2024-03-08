@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"text/template"
 
+	dockerparser "github.com/novln/docker-parser"
 	"github.com/spf13/cobra"
 )
 
@@ -229,9 +229,10 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		}
 	}
 
-	reference := strings.Split(opts.from, ":")[0]
-	referenceParts := strings.Split(reference, "/")
-	name := referenceParts[len(referenceParts)-1]
+	name, err := getNameFromImageReference(opts.from)
+	if err != nil {
+		return nil, err
+	}
 
 	config := appConfig{
 		Name:                              name,
@@ -273,16 +274,22 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 }
 
 func validateImageReference(imageRef string) bool {
-	// This regex is designed to match strings that are valid image references, which include an optional registry (like
-	// "ghcr.io"), a repository name (like "bacongobbler/hello-rust"), and an optional tag (like "1.0.0").
-	//
-	// The regex is quite complex, but in general it's looking for sequences of alphanumeric characters, separated by
-	// periods, underscores, or hyphens, and optionally followed by a slash and more such sequences. The sequences can
-	// be repeated any number of times. The final sequence can optionally be followed by a colon and another sequence,
-	// representing the tag.
-	pattern := `^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$|^([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*/)*([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?/([a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?(:[a-zA-Z0-9]+(?:[._-][a-zA-Z0-9]+)*)?$`
-	regex := regexp.MustCompile(pattern)
-	return regex.MatchString(imageRef)
+	_, err := dockerparser.Parse(imageRef)
+	return err == nil
+}
+
+func getNameFromImageReference(imageRef string) (string, error) {
+	ref, err := dockerparser.Parse(imageRef)
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Contains(ref.ShortName(), "/") {
+		parts := strings.Split(ref.ShortName(), "/")
+		return parts[len(parts)-1], nil
+	}
+
+	return ref.ShortName(), nil
 }
 
 func init() {
