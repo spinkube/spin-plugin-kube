@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - "v[0-9]+.[0-9]+"
     tags:
       - "v*"
 
@@ -51,7 +50,6 @@ jobs:
         GH_TOKEN: ${{ github.token }}
 
     - name: Release Plugin
-      if: github.ref == 'refs/heads/main'
       uses: rajatjindal/spin-plugin-releaser@v1
       with:
         github_token: ${{ github.token }}
