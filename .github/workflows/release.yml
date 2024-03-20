@@ -9,6 +9,9 @@ on:
 
 jobs:
   goreleaser:
+    permissions:
+      # grant the github token the ability to modify release tags
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
