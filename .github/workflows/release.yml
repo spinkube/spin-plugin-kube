@@ -2,10 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - "v*"
+      - "*"
 
 jobs:
   goreleaser:
@@ -32,20 +30,6 @@ jobs:
         args: release --clean ${{ github.ref == 'refs/heads/main' && '--snapshot' || '' }}
       env:
         GITHUB_TOKEN: ${{ github.token }}
-
-    - name: create GitHub release (canary)
-      if: github.ref == 'refs/heads/main'
-      run: |
-        gh release delete canary --cleanup-tag
-        gh release create canary dist/spin-plugin-kube*.tar.gz \
-          --title canary \
-          --prerelease \
-          --notes-file - <<- EOF
-          This is a "canary" release of the most recent commits on our main branch. Canary is **not stable**.
-          It is only intended for developers wishing to try out the latest features in Spin, some of which may not be fully implemented.
-        EOF
-      env:
-        GH_TOKEN: ${{ github.token }}
 
     - name: Release Plugin
       uses: rajatjindal/spin-plugin-releaser@v1

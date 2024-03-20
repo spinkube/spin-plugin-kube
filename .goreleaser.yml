@@ -14,9 +14,6 @@ builds:
   - amd64
   - arm64
 
-snapshot:
-  name_template: "canary"
-
 archives:
 - builds:
   - spin-plugin-kube

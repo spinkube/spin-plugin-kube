@@ -11,16 +11,6 @@ spin plugins update
 spin plugins install kube
 ```
 
-### Canary release
-
-For the canary release:
-
-```sh
-spin plugins install --url https://github.com/spinkube/spin-plugin-kube/releases/download/canary/kube.json
-```
-
-The canary release may not be stable, with some features still in progress.
-
 ### Compiling from source
 
 As an alternative to the plugin manager, you can download and manually install the plugin. Manual installation is
