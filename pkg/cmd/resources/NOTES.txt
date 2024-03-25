@@ -1,0 +1,1 @@
+Your Spin App {{ include "app.fullname" . | quote }} has been installed to Namespace {{ .Release.Namespace | quote }}

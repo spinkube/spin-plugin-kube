@@ -1,0 +1,47 @@
+apiVersion: core.spinoperator.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: {{ include "app.fullname" . }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  image: "{{ .Values.image }}"
+  executor: {{ .Values.executor }}
+{{- if not (eq .Values.autoscaler "") }}
+  enableAutoscaling: true
+{{- else }}
+  replicas: {{ .Values.replicas }}
+{{- end}}
+{{- if or .Values.cpuLimit .Values.memoryLimit }}
+  resources:
+    limits:
+    {{- if .Values.cpuLimit }}
+      cpu: {{ .Values.cpuLimit }}
+    {{- end }}
+    {{- if .Values.memoryLimit }}
+      memory: {{ .Values.memoryLimit }}
+    {{- end }}
+{{- if or .Values.cpuRequest .Values.memoryRequest }}
+    requests:
+    {{- if .Values.cpuRequest }}
+      cpu: {{ .Values.cpuRequest }}
+    {{- end }}
+    {{- if .Values.memoryRequest }}
+      memory: {{ .Values.memoryRequest }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- if len .Values.imagePullSecrets }}
+  imagePullSecrets:
+{{- range $index, $secret := .Values.imagePullSecrets }}
+    - name: {{ $secret -}}
+{{ end }}
+{{- end }}
+{{- if .Values.runtimeConfig }}
+  runtimeConfig:
+    loadFromSecret: {{ include "app.fullname" . }}-runtime-config
+{{- end }}

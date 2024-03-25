@@ -153,6 +153,9 @@ spec:
 var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
 	Short: "Scaffold application manifest",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return validateScaffoldFlags(scaffoldOpts)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		content, err := scaffold(scaffoldOpts)
 		if err != nil {
@@ -171,22 +174,21 @@ var scaffoldCmd = &cobra.Command{
 		}
 
 		fmt.Fprint(os.Stdout, string(content))
-
 		return nil
 	},
 }
 
-func scaffold(opts ScaffoldOptions) ([]byte, error) {
+func validateScaffoldFlags(opts ScaffoldOptions) error {
 	// flag validation
 
 	// replica count must be greater than 0
 	if opts.replicas < 0 {
-		return nil, fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
+		return fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
 	}
 
 	// check that the image reference is valid
 	if !validateImageReference(opts.from) {
-		return nil, fmt.Errorf("invalid image reference provided: '%s'", opts.from)
+		return fmt.Errorf("invalid image reference provided: '%s'", opts.from)
 	}
 
 	// validate autoscaling flags
@@ -195,39 +197,44 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if opts.autoscaler != "" {
 		// autoscaler type must be a valid type
 		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
+			return fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
 		}
 
 		// max replicas must be equal to or greater than 0 (scale down to 0 replicas is allowed)
 		if opts.maxReplicas < 0 {
-			return nil, fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
+			return fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
 		}
 
 		// min replicas must be less than or equal to max replicas
 		if opts.replicas > opts.maxReplicas {
-			return nil, fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
+			return fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
 		}
 
 		// cpu and memory limits must be set
 		if opts.cpuLimit == "" {
-			return nil, fmt.Errorf("cpu limits must be set when autoscaling is enabled")
+			return fmt.Errorf("cpu limits must be set when autoscaling is enabled")
 		}
 
 		if opts.memoryLimit == "" {
-			return nil, fmt.Errorf("memory limits must be set when autoscaling is enabled")
+			return fmt.Errorf("memory limits must be set when autoscaling is enabled")
 		}
 
 		// TODO: cpu and memory requests must be lower than their respective cpu/memory limit
 
 		// target cpu and memory utilization must be between 1 and 100
 		if opts.targetCpuUtilizationPercentage < 1 || opts.targetCpuUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCpuUtilizationPercentage)
+			return fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCpuUtilizationPercentage)
 		}
 
 		if opts.targetMemoryUtilizationPercentage < 1 || opts.targetMemoryUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
+			return fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
 		}
 	}
+
+	return nil
+}
+
+func scaffold(opts ScaffoldOptions) ([]byte, error) {
 
 	name, err := getNameFromImageReference(opts.from)
 	if err != nil {
@@ -293,22 +300,22 @@ func getNameFromImageReference(imageRef string) (string, error) {
 }
 
 func init() {
-	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Minimum number of replicas for the application")
-	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the application. Autoscaling must be enabled to use this flag")
-	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
-	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaler-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the application")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the application is allowed to use")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the application. Used to determine which node the application will run on")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryLimit, "memory-limit", "", "The maximum amount of memory the application is allowed to use")
-	scaffoldCmd.Flags().StringVar(&scaffoldOpts.memoryRequest, "memory-request", "", "The amount of memory requested by the application. Used to determine which node the application will run on")
-	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the application")
+	scaffoldCmd.PersistentFlags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Minimum number of replicas for the application")
+	scaffoldCmd.PersistentFlags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the application. Autoscaling must be enabled to use this flag")
+	scaffoldCmd.PersistentFlags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
+	scaffoldCmd.PersistentFlags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaler-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the application")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.cpuLimit, "cpu-limit", "", "The maximum amount of CPU resource units the application is allowed to use")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.cpuRequest, "cpu-request", "", "The amount of CPU resource units requested by the application. Used to determine which node the application will run on")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.memoryLimit, "memory-limit", "", "The maximum amount of memory the application is allowed to use")
+	scaffoldCmd.PersistentFlags().StringVar(&scaffoldOpts.memoryRequest, "memory-request", "", "The amount of memory requested by the application. Used to determine which node the application will run on")
+	scaffoldCmd.PersistentFlags().StringVarP(&scaffoldOpts.from, "from", "f", "", "Reference in the registry of the application")
+	scaffoldCmd.PersistentFlags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
+	scaffoldCmd.PersistentFlags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "Path to file to write manifest yaml")
-	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
-	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 
-	scaffoldCmd.MarkFlagRequired("from")
+	scaffoldCmd.MarkPersistentFlagRequired("from")
 
 	rootCmd.AddCommand(scaffoldCmd)
 }
