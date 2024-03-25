@@ -253,7 +253,7 @@ func TestFlagValidation(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := scaffold(tc.opts)
+			err := validateScaffoldFlags(tc.opts)
 
 			if tc.expectedError == "" {
 				require.Nil(t, err)

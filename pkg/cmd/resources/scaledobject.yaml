@@ -1,0 +1,28 @@
+{{- if eq .Values.autoscaler "keda" }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "app.fullname" . }}-autoscaler
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+	apiVersion: apps/v1
+	kind: Deployment
+    name: {{ include "app.fullname" . }}
+  minReplicaCount: {{ .Values.replicas }}
+  maxReplicaCount: {{ .Values.maxReplicas }}
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "{{ .Values.targetCpuUtilizationPercentage }}"
+	- type: memory
+	  metricType: Utilization
+	  metadata:
+	    value: "{{ .Values.targetMemoryUtilizationPercentage }}"
+{{- end }}
