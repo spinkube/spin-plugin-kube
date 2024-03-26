@@ -55,6 +55,36 @@ func TestScaffoldOutput(t *testing.T) {
 			},
 			expected: "multiple_image_secrets.yml",
 		},
+		{
+			name: "HPA autoscaler support",
+			opts: ScaffoldOptions{
+				from:                              "ghcr.io/foo/example-app:v0.1.0",
+				executor:                          "containerd-shim-spin",
+				autoscaler:                        "hpa",
+				cpuLimit:                          "100m",
+				memoryLimit:                       "128Mi",
+				replicas:                          2,
+				maxReplicas:                       3,
+				targetCpuUtilizationPercentage:    60,
+				targetMemoryUtilizationPercentage: 60,
+			},
+			expected: "hpa_autoscaler.yml",
+		},
+		{
+			name: "KEDA autoscaler support",
+			opts: ScaffoldOptions{
+				from:                              "ghcr.io/foo/example-app:v0.1.0",
+				executor:                          "containerd-shim-spin",
+				autoscaler:                        "keda",
+				cpuLimit:                          "100m",
+				memoryLimit:                       "128Mi",
+				replicas:                          2,
+				maxReplicas:                       3,
+				targetCpuUtilizationPercentage:    60,
+				targetMemoryUtilizationPercentage: 60,
+			},
+			expected: "keda_autoscaler.yml",
+		},
 	}
 
 	for _, tc := range testcases {
