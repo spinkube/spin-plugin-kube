@@ -121,7 +121,7 @@ spec:
         averageUtilization: {{ .TargetCpuUtilizationPercentage }}
   - type: Resource
     resource:
-     name: memory
+      name: memory
       target:
         type: Utilization
         averageUtilization: {{ .TargetMemoryUtilizationPercentage }}
