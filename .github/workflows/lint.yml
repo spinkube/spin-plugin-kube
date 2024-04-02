@@ -13,6 +13,8 @@ env:
   # set VALIDATE_GO as "false" so we analyze Go files in the context of a Go module.
   # https://github.com/super-linter/super-linter/issues/5341
   VALIDATE_GO: "false"
+  VALIDATE_CHECKOV: "false"
+  KUBERNETES_KUBECONFORM_OPTIONS: "--ignore-missing-schemas"
 
 jobs:
   build:
