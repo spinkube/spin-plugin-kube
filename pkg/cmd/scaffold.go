@@ -121,7 +121,7 @@ spec:
         averageUtilization: {{ .TargetCpuUtilizationPercentage }}
   - type: Resource
     resource:
-     name: memory
+      name: memory
       target:
         type: Utilization
         averageUtilization: {{ .TargetMemoryUtilizationPercentage }}
@@ -132,20 +132,20 @@ metadata:
   name: {{ .Name }}-autoscaler
 spec:
   scaleTargetRef:
-	apiVersion: apps/v1
-	kind: Deployment
+    apiVersion: apps/v1
+    kind: Deployment
     name: {{ .Name }}
   minReplicaCount: {{ .Replicas }}
   maxReplicaCount: {{ .MaxReplicas }}
   triggers:
-    - type: cpu
-      metricType: Utilization
-      metadata:
-        value: "{{ .TargetCpuUtilizationPercentage }}"
-	- type: memory
-	  metricType: Utilization
-	  metadata:
-	    value: "{{ .TargetMemoryUtilizationPercentage }}"
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: "{{ .TargetCpuUtilizationPercentage }}"
+  - type: memory
+    metricType: Utilization
+    metadata:
+      value: "{{ .TargetMemoryUtilizationPercentage }}"
 {{- end }}
 {{- end }}
 `

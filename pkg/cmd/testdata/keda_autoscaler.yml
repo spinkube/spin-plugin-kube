@@ -1,0 +1,33 @@
+apiVersion: core.spinoperator.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: example-app
+spec:
+  image: "ghcr.io/foo/example-app:v0.1.0"
+  executor: containerd-shim-spin
+  enableAutoscaling: true
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: example-app-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: example-app
+  minReplicaCount: 2
+  maxReplicaCount: 3
+  triggers:
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: "60"
+  - type: memory
+    metricType: Utilization
+    metadata:
+      value: "60"
