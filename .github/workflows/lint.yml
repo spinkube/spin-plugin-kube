@@ -8,6 +8,12 @@ on:
     branches:
       - main
 
+env:
+  # super-linter sets both VALIDATE_GO_MODULES and VALIDATE_GO to "true" by default, so we need to
+  # set VALIDATE_GO as "false" so we analyze Go files in the context of a Go module.
+  # https://github.com/super-linter/super-linter/issues/5341
+  VALIDATE_GO: "false"
+
 jobs:
   build:
     name: Lint
