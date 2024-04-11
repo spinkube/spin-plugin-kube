@@ -14,7 +14,7 @@ var logsCmd = &cobra.Command{
 	Use:    "logs <name>",
 	Short:  "Display application logs",
 	Hidden: isExperimentalFlagNotSet,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		var appName string
 		if len(args) > 0 {
 			appName = args[0]

@@ -29,7 +29,7 @@ func newRootCmd() *cobra.Command {
 		Use:     "kube",
 		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(_ *cobra.Command, args []string) error {
 			namespace = getNamespace(configFlags)
 			k8sclient, err := getRuntimeClient()
 			if err != nil {

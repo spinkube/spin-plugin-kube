@@ -153,7 +153,7 @@ spec:
 var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
 	Short: "Scaffold application manifest",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		content, err := scaffold(scaffoldOpts)
 		if err != nil {
 			return err
