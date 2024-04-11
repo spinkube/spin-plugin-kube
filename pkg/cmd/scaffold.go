@@ -176,17 +176,15 @@ var scaffoldCmd = &cobra.Command{
 	},
 }
 
-func scaffold(opts ScaffoldOptions) ([]byte, error) {
-	// flag validation
-
+func validateFlags(opts ScaffoldOptions) error {
 	// replica count must be greater than 0
 	if opts.replicas < 0 {
-		return nil, fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
+		return fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
 	}
 
 	// check that the image reference is valid
 	if !validateImageReference(opts.from) {
-		return nil, fmt.Errorf("invalid image reference provided: '%s'", opts.from)
+		return fmt.Errorf("invalid image reference provided: '%s'", opts.from)
 	}
 
 	// validate autoscaling flags
@@ -195,38 +193,45 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if opts.autoscaler != "" {
 		// autoscaler type must be a valid type
 		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
+			return fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
 		}
 
 		// max replicas must be equal to or greater than 0 (scale down to 0 replicas is allowed)
 		if opts.maxReplicas < 0 {
-			return nil, fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
+			return fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
 		}
 
 		// min replicas must be less than or equal to max replicas
 		if opts.replicas > opts.maxReplicas {
-			return nil, fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
+			return fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
 		}
 
 		// cpu and memory limits must be set
 		if opts.cpuLimit == "" {
-			return nil, fmt.Errorf("cpu limits must be set when autoscaling is enabled")
+			return fmt.Errorf("cpu limits must be set when autoscaling is enabled")
 		}
 
 		if opts.memoryLimit == "" {
-			return nil, fmt.Errorf("memory limits must be set when autoscaling is enabled")
+			return fmt.Errorf("memory limits must be set when autoscaling is enabled")
 		}
 
 		// TODO: cpu and memory requests must be lower than their respective cpu/memory limit
 
 		// target cpu and memory utilization must be between 1 and 100
 		if opts.targetCPUUtilizationPercentage < 1 || opts.targetCPUUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCPUUtilizationPercentage)
+			return fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCPUUtilizationPercentage)
 		}
 
 		if opts.targetMemoryUtilizationPercentage < 1 || opts.targetMemoryUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
+			return fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
 		}
+	}
+	return nil
+}
+
+func scaffold(opts ScaffoldOptions) ([]byte, error) {
+	if err := validateFlags(opts); err != nil {
+		return nil, err
 	}
 
 	name, err := getNameFromImageReference(opts.from)
@@ -251,9 +256,9 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	}
 
 	if opts.configfile != "" {
-		raw, err := os.ReadFile(opts.configfile)
-		if err != nil {
-			return nil, err
+		raw, readErr := os.ReadFile(opts.configfile)
+		if readErr != nil {
+			return nil, readErr
 		}
 
 		config.RuntimeConfig = base64.StdEncoding.EncodeToString(raw)

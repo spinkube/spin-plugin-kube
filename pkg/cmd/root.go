@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spinkube/spin-plugin-kube/pkg/kube"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth" // required for k8s client auth
 )
 
 // global variables available to all sub-commands
@@ -29,7 +29,7 @@ func newRootCmd() *cobra.Command {
 		Use:     "kube",
 		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
-		PersistentPreRunE: func(_ *cobra.Command, args []string) error {
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
 			namespace = getNamespace(configFlags)
 			k8sclient, err := getRuntimeClient()
 			if err != nil {
