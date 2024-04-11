@@ -25,7 +25,7 @@ var (
 var rootCmd = newRootCmd()
 
 func newRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
+	root := &cobra.Command{
 		Use:     "kube",
 		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
@@ -70,8 +70,8 @@ func newRootCmd() *cobra.Command {
 			f.Name = "kube-" + f.Name
 		}
 	})
-	rootCmd.Flags().AddFlagSet(flagSet)
-	return rootCmd
+	root.Flags().AddFlagSet(flagSet)
+	return root
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -98,7 +98,7 @@ func initAppNameFromCurrentDirContext() (string, error) {
 	}
 
 	content, err := os.ReadFile("spin.toml")
-	//running from a non spin-app dir
+	// running from a non spin-app dir
 	if os.IsNotExist(err) {
 		return "", nil
 	}

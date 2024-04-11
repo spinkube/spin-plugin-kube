@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,8 +17,11 @@ var Version = "unknown"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display version information",
-	Run: func(cmd *cobra.Command, args []string) {
-		shortFlag, _ := cmd.Flags().GetBool("short")
+	Run: func(cmd *cobra.Command, _ []string) {
+		shortFlag, err := cmd.Flags().GetBool("short")
+		if err != nil {
+			log.Fatalf("Error getting short flag: %v", err)
+		}
 
 		if shortFlag {
 			fmt.Println(Version)

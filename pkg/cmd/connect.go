@@ -31,9 +31,18 @@ var connectCmd = &cobra.Command{
 			appName = appNameFromCurrentDirContext
 		}
 
-		localPort, _ := cmd.Flags().GetString("local-port")
-		fieldSelector, _ := cmd.Flags().GetString("field-selector")
-		labelSelector, _ := cmd.Flags().GetString("label-selector")
+		localPort, err := cmd.Flags().GetString("local-port")
+		if err != nil {
+			return err
+		}
+		fieldSelector, err := cmd.Flags().GetString("field-selector")
+		if err != nil {
+			return err
+		}
+		labelSelector, err := cmd.Flags().GetString("label-selector")
+		if err != nil {
+			return err
+		}
 
 		if appName == "" && fieldSelector == "" && labelSelector == "" {
 			return fmt.Errorf("either one of <name>, --field-selector, or --label-selector is required")

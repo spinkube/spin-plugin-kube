@@ -21,7 +21,7 @@ var deployCmd = &cobra.Command{
 	Use:    "deploy",
 	Short:  "Deploy application to Kubernetes",
 	Hidden: isExperimentalFlagNotSet,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		name, err := getNameFromImageReference(artifact)
 		if err != nil {
 			return err
@@ -45,12 +45,13 @@ var deployCmd = &cobra.Command{
 
 		if dryRun {
 			y := printers.YAMLPrinter{}
-			y.PrintObj(&spinapp, os.Stdout)
+			if err := y.PrintObj(&spinapp, os.Stdout); err != nil {
+				return err
+			}
 			return nil
 		}
 
-		err = kubeImpl.ApplySpinApp(context.TODO(), &spinapp)
-		if err != nil {
+		if err := kubeImpl.ApplySpinApp(context.TODO(), &spinapp); err != nil {
 			return err
 		}
 
