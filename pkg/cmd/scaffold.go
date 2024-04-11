@@ -26,7 +26,7 @@ type ScaffoldOptions struct {
 	memoryRequest                     string
 	output                            string
 	replicas                          int32
-	targetCpuUtilizationPercentage    int32
+	targetCPUUtilizationPercentage    int32
 	targetMemoryUtilizationPercentage int32
 }
 
@@ -34,8 +34,8 @@ var scaffoldOpts = ScaffoldOptions{}
 
 type appConfig struct {
 	Autoscaler                        string
-	CpuLimit                          string
-	CpuRequest                        string
+	CPULimit                          string
+	CPURequest                        string
 	Executor                          string
 	Image                             string
 	ImagePullSecrets                  []string
@@ -45,7 +45,7 @@ type appConfig struct {
 	Name                              string
 	Replicas                          int32
 	RuntimeConfig                     string
-	TargetCpuUtilizationPercentage    int32
+	TargetCPUUtilizationPercentage    int32
 	TargetMemoryUtilizationPercentage int32
 }
 
@@ -61,19 +61,19 @@ spec:
 {{- else }}
   replicas: {{ .Replicas }}
 {{- end}}
-{{- if or .CpuLimit .MemoryLimit }}
+{{- if or .CPULimit .MemoryLimit }}
   resources:
     limits:
-    {{- if .CpuLimit }}
-      cpu: {{ .CpuLimit }}
+    {{- if .CPULimit }}
+      cpu: {{ .CPULimit }}
     {{- end }}
     {{- if .MemoryLimit }}
       memory: {{ .MemoryLimit }}
     {{- end }}
-{{- if or .CpuRequest .MemoryRequest }}
+{{- if or .CPURequest .MemoryRequest }}
     requests:
-    {{- if .CpuRequest }}
-      cpu: {{ .CpuRequest }}
+    {{- if .CPURequest }}
+      cpu: {{ .CPURequest }}
     {{- end }}
     {{- if .MemoryRequest }}
       memory: {{ .MemoryRequest }}
@@ -118,7 +118,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: {{ .TargetCpuUtilizationPercentage }}
+        averageUtilization: {{ .TargetCPUUtilizationPercentage }}
   - type: Resource
     resource:
       name: memory
@@ -141,7 +141,7 @@ spec:
   - type: cpu
     metricType: Utilization
     metadata:
-      value: "{{ .TargetCpuUtilizationPercentage }}"
+      value: "{{ .TargetCPUUtilizationPercentage }}"
   - type: memory
     metricType: Utilization
     metadata:
@@ -153,14 +153,14 @@ spec:
 var scaffoldCmd = &cobra.Command{
 	Use:   "scaffold",
 	Short: "Scaffold application manifest",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		content, err := scaffold(scaffoldOpts)
 		if err != nil {
 			return err
 		}
 
 		if scaffoldOpts.output != "" {
-			err = os.WriteFile(scaffoldOpts.output, content, 0644)
+			err = os.WriteFile(scaffoldOpts.output, content, 0600)
 			if err != nil {
 				return err
 			}
@@ -176,17 +176,15 @@ var scaffoldCmd = &cobra.Command{
 	},
 }
 
-func scaffold(opts ScaffoldOptions) ([]byte, error) {
-	// flag validation
-
+func validateFlags(opts ScaffoldOptions) error {
 	// replica count must be greater than 0
 	if opts.replicas < 0 {
-		return nil, fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
+		return fmt.Errorf("the minimum replica count (%d) must be greater than 0", opts.replicas)
 	}
 
 	// check that the image reference is valid
 	if !validateImageReference(opts.from) {
-		return nil, fmt.Errorf("invalid image reference provided: '%s'", opts.from)
+		return fmt.Errorf("invalid image reference provided: '%s'", opts.from)
 	}
 
 	// validate autoscaling flags
@@ -195,38 +193,45 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if opts.autoscaler != "" {
 		// autoscaler type must be a valid type
 		if opts.autoscaler != "hpa" && opts.autoscaler != "keda" {
-			return nil, fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
+			return fmt.Errorf("invalid autoscaler type '%s'; the autoscaler type must be either 'hpa' or 'keda'", opts.autoscaler)
 		}
 
 		// max replicas must be equal to or greater than 0 (scale down to 0 replicas is allowed)
 		if opts.maxReplicas < 0 {
-			return nil, fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
+			return fmt.Errorf("the maximum replica count (%d) must be equal to or greater than 0", opts.maxReplicas)
 		}
 
 		// min replicas must be less than or equal to max replicas
 		if opts.replicas > opts.maxReplicas {
-			return nil, fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
+			return fmt.Errorf("the minimum replica count (%d) must be less than or equal to the maximum replica count (%d)", opts.replicas, opts.maxReplicas)
 		}
 
 		// cpu and memory limits must be set
 		if opts.cpuLimit == "" {
-			return nil, fmt.Errorf("cpu limits must be set when autoscaling is enabled")
+			return fmt.Errorf("cpu limits must be set when autoscaling is enabled")
 		}
 
 		if opts.memoryLimit == "" {
-			return nil, fmt.Errorf("memory limits must be set when autoscaling is enabled")
+			return fmt.Errorf("memory limits must be set when autoscaling is enabled")
 		}
 
 		// TODO: cpu and memory requests must be lower than their respective cpu/memory limit
 
 		// target cpu and memory utilization must be between 1 and 100
-		if opts.targetCpuUtilizationPercentage < 1 || opts.targetCpuUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCpuUtilizationPercentage)
+		if opts.targetCPUUtilizationPercentage < 1 || opts.targetCPUUtilizationPercentage > 100 {
+			return fmt.Errorf("target cpu utilization percentage (%d) must be between 1 and 100", opts.targetCPUUtilizationPercentage)
 		}
 
 		if opts.targetMemoryUtilizationPercentage < 1 || opts.targetMemoryUtilizationPercentage > 100 {
-			return nil, fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
+			return fmt.Errorf("target memory utilization percentage (%d) must be between 1 and 100", opts.targetMemoryUtilizationPercentage)
 		}
+	}
+	return nil
+}
+
+func scaffold(opts ScaffoldOptions) ([]byte, error) {
+	if err := validateFlags(opts); err != nil {
+		return nil, err
 	}
 
 	name, err := getNameFromImageReference(opts.from)
@@ -240,20 +245,20 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		Replicas:                          opts.replicas,
 		MaxReplicas:                       opts.maxReplicas,
 		Executor:                          opts.executor,
-		CpuLimit:                          opts.cpuLimit,
+		CPULimit:                          opts.cpuLimit,
 		MemoryLimit:                       opts.memoryLimit,
-		CpuRequest:                        opts.cpuRequest,
+		CPURequest:                        opts.cpuRequest,
 		MemoryRequest:                     opts.memoryRequest,
-		TargetCpuUtilizationPercentage:    opts.targetCpuUtilizationPercentage,
+		TargetCPUUtilizationPercentage:    opts.targetCPUUtilizationPercentage,
 		TargetMemoryUtilizationPercentage: opts.targetMemoryUtilizationPercentage,
 		Autoscaler:                        opts.autoscaler,
 		ImagePullSecrets:                  opts.imagePullSecrets,
 	}
 
 	if opts.configfile != "" {
-		raw, err := os.ReadFile(opts.configfile)
-		if err != nil {
-			return nil, err
+		raw, readErr := os.ReadFile(opts.configfile)
+		if readErr != nil {
+			return nil, readErr
 		}
 
 		config.RuntimeConfig = base64.StdEncoding.EncodeToString(raw)
@@ -295,7 +300,7 @@ func getNameFromImageReference(imageRef string) (string, error) {
 func init() {
 	scaffoldCmd.Flags().Int32VarP(&scaffoldOpts.replicas, "replicas", "r", 2, "Minimum number of replicas for the application")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.maxReplicas, "max-replicas", 3, "Maximum number of replicas for the application. Autoscaling must be enabled to use this flag")
-	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCpuUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
+	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetCPUUtilizationPercentage, "autoscaler-target-cpu-utilization", 60, "The target CPU utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().Int32Var(&scaffoldOpts.targetMemoryUtilizationPercentage, "autoscaler-target-memory-utilization", 60, "The target memory utilization percentage to maintain across all pods")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.autoscaler, "autoscaler", "", "The autoscaler to use. Valid values are 'hpa' and 'keda'")
 	scaffoldCmd.Flags().StringVar(&scaffoldOpts.executor, "executor", "containerd-shim-spin", "The executor used to run the application")
@@ -308,7 +313,9 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
 	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 
-	scaffoldCmd.MarkFlagRequired("from")
+	if err := scaffoldCmd.MarkFlagRequired("from"); err != nil {
+		log.Fatal(err)
+	}
 
 	rootCmd.AddCommand(scaffoldCmd)
 }

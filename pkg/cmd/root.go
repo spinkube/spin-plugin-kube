@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spinkube/spin-plugin-kube/pkg/kube"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	_ "k8s.io/client-go/plugin/pkg/client/auth" // required for k8s client auth
 )
 
 // global variables available to all sub-commands
@@ -25,11 +25,11 @@ var (
 var rootCmd = newRootCmd()
 
 func newRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
+	root := &cobra.Command{
 		Use:     "kube",
 		Short:   "Manage applications running on Kubernetes",
 		Version: Version,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
 			namespace = getNamespace(configFlags)
 			k8sclient, err := getRuntimeClient()
 			if err != nil {
@@ -70,8 +70,8 @@ func newRootCmd() *cobra.Command {
 			f.Name = "kube-" + f.Name
 		}
 	})
-	rootCmd.Flags().AddFlagSet(flagSet)
-	return rootCmd
+	root.Flags().AddFlagSet(flagSet)
+	return root
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -98,7 +98,7 @@ func initAppNameFromCurrentDirContext() (string, error) {
 	}
 
 	content, err := os.ReadFile("spin.toml")
-	//running from a non spin-app dir
+	// running from a non spin-app dir
 	if os.IsNotExist(err) {
 		return "", nil
 	}

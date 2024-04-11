@@ -12,7 +12,7 @@ var getCmd = &cobra.Command{
 	Use:    "get <name>",
 	Short:  "Display detailed application information",
 	Hidden: isExperimentalFlagNotSet,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		var appName string
 		if len(args) > 0 {
 			appName = args[0]

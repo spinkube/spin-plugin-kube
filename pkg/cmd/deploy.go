@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -21,7 +22,7 @@ var deployCmd = &cobra.Command{
 	Use:    "deploy",
 	Short:  "Deploy application to Kubernetes",
 	Hidden: isExperimentalFlagNotSet,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		name, err := getNameFromImageReference(artifact)
 		if err != nil {
 			return err
@@ -45,12 +46,13 @@ var deployCmd = &cobra.Command{
 
 		if dryRun {
 			y := printers.YAMLPrinter{}
-			y.PrintObj(&spinapp, os.Stdout)
+			if err := y.PrintObj(&spinapp, os.Stdout); err != nil {
+				return err
+			}
 			return nil
 		}
 
-		err = kubeImpl.ApplySpinApp(context.TODO(), &spinapp)
-		if err != nil {
+		if err := kubeImpl.ApplySpinApp(context.TODO(), &spinapp); err != nil {
 			return err
 		}
 
@@ -63,7 +65,10 @@ func init() {
 	deployCmd.Flags().BoolVar(&dryRun, "dry-run", false, "only print the kubernetes manifest without deploying")
 	deployCmd.Flags().Int32VarP(&replicas, "replicas", "r", 2, "Number of replicas for the application")
 	deployCmd.Flags().StringVarP(&artifact, "from", "f", "", "Reference in the registry of the application")
-	deployCmd.MarkFlagRequired("from")
+
+	if err := deployCmd.MarkFlagRequired("from"); err != nil {
+		log.Fatal(err)
+	}
 
 	configFlags.AddFlags(deployCmd.Flags())
 	rootCmd.AddCommand(deployCmd)
