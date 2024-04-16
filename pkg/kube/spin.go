@@ -1,18 +1,11 @@
 package kube
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os"
 
 	spinv1alpha1 "github.com/spinkube/spin-operator/api/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/kubectl/pkg/cmd/logs"
-	"k8s.io/kubectl/pkg/polymorphichelpers"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -77,57 +70,6 @@ func (i *Impl) DeleteSpinApp(ctx context.Context, name client.ObjectKey) error {
 	}
 
 	return nil
-}
-
-func (i *Impl) GetLogs(ctx context.Context, key client.ObjectKey) ([]byte, error) {
-	rcfg, err := i.configFlags.ToRESTConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	k8sclient, err := kubernetes.NewForConfig(rcfg)
-	if err != nil {
-		return nil, err
-	}
-
-	podsresp, err := k8sclient.CoreV1().Pods(key.Namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("core.spinoperator.dev/app.%s.status=ready", key.Name),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	x := int64(100)
-	var logsbuffer bytes.Buffer
-	logoptions := logs.NewLogsOptions(genericclioptions.IOStreams{In: os.Stdin, Out: &logsbuffer, ErrOut: os.Stderr}, true)
-
-	logoptions.Selector = fmt.Sprintf("core.spinoperator.dev/app.%s.status=ready", key.Name)
-	logoptions.Prefix = true
-	logoptions.RESTClientGetter = i.configFlags
-	logoptions.ConsumeRequestFn = logs.DefaultConsumeRequest
-	logoptions.Object = podsresp
-	logoptions.LogsForObject = polymorphichelpers.LogsForObjectFn
-	logoptions.IgnoreLogErrors = false
-	logoptions.Timestamps = true
-	logoptions.Options = &corev1.PodLogOptions{
-		Follow:                       false,
-		Previous:                     false,
-		Timestamps:                   true,
-		InsecureSkipTLSVerifyBackend: true,
-		TailLines:                    &x,
-	}
-
-	err = logoptions.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	err = logoptions.RunLogs()
-	if err != nil {
-		return nil, err
-	}
-
-	return logsbuffer.Bytes(), nil
 }
 
 func ptr[T any](v T) *T {
