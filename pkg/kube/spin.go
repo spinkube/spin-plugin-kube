@@ -91,7 +91,7 @@ func (i *Impl) GetLogs(ctx context.Context, key client.ObjectKey) ([]byte, error
 	}
 
 	podsresp, err := k8sclient.CoreV1().Pods(key.Namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("spin-app.fermyon.com/%s=ready", key.Name),
+		LabelSelector: fmt.Sprintf("core.spinoperator.dev/app.%s.status=ready", key.Name),
 	})
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (i *Impl) GetLogs(ctx context.Context, key client.ObjectKey) ([]byte, error
 	var logsbuffer bytes.Buffer
 	logoptions := logs.NewLogsOptions(genericclioptions.IOStreams{In: os.Stdin, Out: &logsbuffer, ErrOut: os.Stderr}, true)
 
-	logoptions.Selector = fmt.Sprintf("spin-app.fermyon.com/%s=ready", key.Name)
+	logoptions.Selector = fmt.Sprintf("core.spinoperator.dev/app.%s.status=ready", key.Name)
 	logoptions.Prefix = true
 	logoptions.RESTClientGetter = i.configFlags
 	logoptions.ConsumeRequestFn = logs.DefaultConsumeRequest
