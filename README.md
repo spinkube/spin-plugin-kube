@@ -39,8 +39,8 @@ make install
 
 ## Prerequisites
 
-Ensure spin-operator is installed in your Kubernetes cluster. See the [spin-operator Quickstart
-Guide](https://github.com/spinkube/documentation/blob/main/content/en/docs/spin-operator/quickstart/_index.md).
+Ensure SpinKube is installed in your Kubernetes cluster. See the [SpinKube Quickstart
+Guide](https://www.spinkube.dev/docs/install/quickstart/).
 
 ## Usage
 
