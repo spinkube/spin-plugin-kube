@@ -28,6 +28,7 @@ type ScaffoldOptions struct {
 	replicas                          int32
 	targetCPUUtilizationPercentage    int32
 	targetMemoryUtilizationPercentage int32
+	variables                         map[string]string
 }
 
 var scaffoldOpts = ScaffoldOptions{}
@@ -47,6 +48,7 @@ type appConfig struct {
 	RuntimeConfig                     string
 	TargetCPUUtilizationPercentage    int32
 	TargetMemoryUtilizationPercentage int32
+	Variables                         map[string]string
 }
 
 var manifestStr = `apiVersion: core.spinoperator.dev/v1alpha1
@@ -61,6 +63,13 @@ spec:
 {{- else }}
   replicas: {{ .Replicas }}
 {{- end}}
+{{- if .Variables }}
+  variables:
+{{- range $key, $value := .Variables }}
+  - name: {{ $key }}
+    value: {{ $value }}
+{{- end }}
+{{- end }}
 {{- if or .CPULimit .MemoryLimit }}
   resources:
     limits:
@@ -253,6 +262,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		TargetMemoryUtilizationPercentage: opts.targetMemoryUtilizationPercentage,
 		Autoscaler:                        opts.autoscaler,
 		ImagePullSecrets:                  opts.imagePullSecrets,
+		Variables:                         opts.variables,
 	}
 
 	if opts.configfile != "" {
@@ -312,6 +322,7 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.output, "out", "o", "", "Path to file to write manifest yaml")
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
 	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
+	scaffoldCmd.PersistentFlags().StringToStringVarP(&scaffoldOpts.variables, "variable", "v", nil, "Application variable (name=value) to be provided to the application")
 
 	if err := scaffoldCmd.MarkFlagRequired("from"); err != nil {
 		log.Fatal(err)
