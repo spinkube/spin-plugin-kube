@@ -1,0 +1,13 @@
+apiVersion: core.spinoperator.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: example-app
+spec:
+  image: "ghcr.io/foo/example-app:v0.1.0"
+  executor: containerd-shim-spin
+  replicas: 2
+  variables:
+  - name: bar
+    value: yee
+  - name: foo
+    value: yoo

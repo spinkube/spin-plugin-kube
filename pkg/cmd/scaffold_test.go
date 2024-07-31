@@ -85,6 +85,19 @@ func TestScaffoldOutput(t *testing.T) {
 			},
 			expected: "keda_autoscaler.yml",
 		},
+		{
+			name: "variables are provided",
+			opts: ScaffoldOptions{
+				from:     "ghcr.io/foo/example-app:v0.1.0",
+				replicas: 2,
+				executor: "containerd-shim-spin",
+				variables: map[string]string{
+					"bar": "yee",
+					"foo": "yoo",
+				},
+			},
+			expected: "variables.yml",
+		},
 	}
 
 	for _, tc := range testcases {
