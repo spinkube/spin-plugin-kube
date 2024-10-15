@@ -98,6 +98,19 @@ func TestScaffoldOutput(t *testing.T) {
 			},
 			expected: "variables.yml",
 		},
+		{
+			name: "components are specified",
+			opts: ScaffoldOptions{
+				from:     "ghcr.io/foo/example-app:v0.1.0",
+				replicas: 2,
+				executor: "containerd-shim-spin",
+				components: []string{
+					"hello",
+					"world",
+				},
+			},
+			expected: "components.yml",
+		},
 	}
 
 	for _, tc := range testcases {
