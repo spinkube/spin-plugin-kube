@@ -29,6 +29,7 @@ type ScaffoldOptions struct {
 	targetCPUUtilizationPercentage    int32
 	targetMemoryUtilizationPercentage int32
 	variables                         map[string]string
+	components                        []string
 }
 
 var scaffoldOpts = ScaffoldOptions{}
@@ -49,6 +50,7 @@ type appConfig struct {
 	TargetCPUUtilizationPercentage    int32
 	TargetMemoryUtilizationPercentage int32
 	Variables                         map[string]string
+	Components                        []string
 }
 
 var manifestStr = `apiVersion: core.spinkube.dev/v1alpha1
@@ -68,6 +70,12 @@ spec:
 {{- range $key, $value := .Variables }}
   - name: {{ $key }}
     value: {{ $value }}
+{{- end }}
+{{- end }}
+{{- if .Components }}
+  components:
+{{- range $c := .Components }}
+  - {{ $c }}
 {{- end }}
 {{- end }}
 {{- if or .CPULimit .MemoryLimit }}
@@ -263,6 +271,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 		Autoscaler:                        opts.autoscaler,
 		ImagePullSecrets:                  opts.imagePullSecrets,
 		Variables:                         opts.variables,
+		Components:                        opts.components,
 	}
 
 	if opts.configfile != "" {
@@ -323,6 +332,7 @@ func init() {
 	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.configfile, "runtime-config-file", "c", "", "Path to runtime config file")
 	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 	scaffoldCmd.PersistentFlags().StringToStringVarP(&scaffoldOpts.variables, "variable", "v", nil, "Application variable (name=value) to be provided to the application")
+	scaffoldCmd.PersistentFlags().StringSliceVarP(&scaffoldOpts.components, "component", "", nil, "Component ID to run. This can be specified multiple times. The default is all components.")
 
 	if err := scaffoldCmd.MarkFlagRequired("from"); err != nil {
 		log.Fatal(err)
