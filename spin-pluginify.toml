@@ -1,6 +1,6 @@
 name = "kube"
 description = "Commands for publishing applications to Kubernetes using the spin-operator."
-version = "0.1.1"
+version = "0.2.0"
 spin_compatibility = ">=2.3.1"
 license = "Apache-2.0"
 homepage = "https://github.com/spinkube/spin-plugin-kube"
