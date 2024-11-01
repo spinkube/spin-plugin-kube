@@ -34,7 +34,7 @@ var deployCmd = &cobra.Command{
 				Namespace: namespace,
 			},
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: "core.spinoperator.dev/v1alpha1",
+				APIVersion: "core.spinkube.dev/v1alpha1",
 				Kind:       "SpinApp",
 			},
 			Spec: spinv1alpha1.SpinAppSpec{
