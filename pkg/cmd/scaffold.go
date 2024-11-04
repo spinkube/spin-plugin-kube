@@ -51,7 +51,7 @@ type appConfig struct {
 	Variables                         map[string]string
 }
 
-var manifestStr = `apiVersion: core.spinoperator.dev/v1alpha1
+var manifestStr = `apiVersion: core.spinkube.dev/v1alpha1
 kind: SpinApp
 metadata:
   name: {{ .Name }}

@@ -178,7 +178,7 @@ Use the secret when scaffolding the SpinApp
 ```sh
 $) spin kube scaffold --from bacongobbler/hello-rust:latest --image-pull-secret registry-credentials
 
-apiVersion: core.spinoperator.dev/v1alpha1
+apiVersion: core.spinkube.dev/v1alpha1
 kind: SpinApp
 metadata:
   name: hello-rust
