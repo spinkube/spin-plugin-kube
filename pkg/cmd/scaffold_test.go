@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -110,6 +111,16 @@ func TestScaffoldOutput(t *testing.T) {
 				},
 			},
 			expected: "components.yml",
+		},
+		{
+			name: "overwrite name",
+			opts: ScaffoldOptions{
+				from:     "ghcr.io/foo/example-app:v0.1.0",
+				replicas: 2,
+				executor: "containerd-shim-spin",
+				name:     "my-custom-name",
+			},
+			expected: "overwrite_name.yml",
 		},
 	}
 
@@ -304,6 +315,22 @@ func TestFlagValidation(t *testing.T) {
 				targetCPUUtilizationPercentage: 1,
 			},
 			expectedError: "target memory utilization percentage (0) must be between 1 and 100",
+		},
+		{
+			name: "must provide valid DNS subdomain name",
+			opts: ScaffoldOptions{
+				from: "ghcr.io/foo/example-app:v0.1.0",
+				name: "my*app",
+			},
+			expectedError: "invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars",
+		},
+		{
+			name: "must provide valid DNS subdomain name 2",
+			opts: ScaffoldOptions{
+				from: "ghcr.io/foo/example-app:v0.1.0",
+				name: strings.Repeat("a", 254),
+			},
+			expectedError: "invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars",
 		},
 	}
 

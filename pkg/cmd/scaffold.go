@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -14,6 +15,7 @@ import (
 )
 
 type ScaffoldOptions struct {
+	name                              string
 	autoscaler                        string
 	configfile                        string
 	cpuLimit                          string
@@ -250,10 +252,15 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if err := validateFlags(opts); err != nil {
 		return nil, err
 	}
-
 	name, err := getNameFromImageReference(opts.from)
 	if err != nil {
 		return nil, err
+	}
+	if len(opts.name) > 0 {
+		if !validateName(opts.name) {
+			return nil, fmt.Errorf("invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars")
+		}
+		name = opts.name
 	}
 
 	config := appConfig{
@@ -302,6 +309,22 @@ func validateImageReference(imageRef string) bool {
 	return err == nil
 }
 
+func validateName(name string) bool {
+	// ensure name is a valid DNS subdomain
+	const pattern = `^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`
+
+	// check length
+	if len(name) < 1 || len(name) > 253 {
+		return false
+	}
+
+	// Compile the regex
+	re := regexp.MustCompile(pattern)
+
+	// Match the name against the pattern
+	return re.MatchString(name)
+}
+
 func getNameFromImageReference(imageRef string) (string, error) {
 	ref, err := dockerparser.Parse(imageRef)
 	if err != nil {
@@ -333,7 +356,7 @@ func init() {
 	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 	scaffoldCmd.PersistentFlags().StringToStringVarP(&scaffoldOpts.variables, "variable", "v", nil, "Application variable (name=value) to be provided to the application")
 	scaffoldCmd.PersistentFlags().StringSliceVarP(&scaffoldOpts.components, "component", "", nil, "Component ID to run. This can be specified multiple times. The default is all components.")
-
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.name, "name", "", "", "Overwrite the generated name of the application")
 	if err := scaffoldCmd.MarkFlagRequired("from"); err != nil {
 		log.Fatal(err)
 	}
