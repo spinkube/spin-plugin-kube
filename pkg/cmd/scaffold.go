@@ -252,15 +252,9 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if err := validateFlags(opts); err != nil {
 		return nil, err
 	}
-	name, err := getNameFromImageReference(opts.from)
+	name, err := getSpinAppName(opts.from, opts.name)
 	if err != nil {
 		return nil, err
-	}
-	if len(opts.name) > 0 {
-		if !validateName(opts.name) {
-			return nil, fmt.Errorf("invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars")
-		}
-		name = opts.name
 	}
 
 	config := appConfig{
@@ -325,18 +319,29 @@ func validateName(name string) bool {
 	return re.MatchString(name)
 }
 
-func getNameFromImageReference(imageRef string) (string, error) {
-	ref, err := dockerparser.Parse(imageRef)
-	if err != nil {
-		return "", err
+// / Retrieve the desired name for the SpinApp CR
+// / If provided, custom name has highest priority
+// / If not provided, the name is computed from the image reference
+// / In either case, the resulting name will be validated using the `validateName` func
+func getSpinAppName(imageRef string, customName string) (string, error) {
+	name := customName
+	if len(name) == 0 {
+		ref, err := dockerparser.Parse(imageRef)
+		if err != nil {
+			return "", err
+		}
+		switch strings.Contains(ref.ShortName(), "/") {
+		case true:
+			parts := strings.Split(ref.ShortName(), "/")
+			name = parts[len(parts)-1]
+		case false:
+			name = ref.ShortName()
+		}
 	}
-
-	if strings.Contains(ref.ShortName(), "/") {
-		parts := strings.Split(ref.ShortName(), "/")
-		return parts[len(parts)-1], nil
+	if !validateName(name) {
+		return "", fmt.Errorf("invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars")
 	}
-
-	return ref.ShortName(), nil
+	return name, nil
 }
 
 func init() {

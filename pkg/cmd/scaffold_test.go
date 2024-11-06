@@ -158,42 +158,59 @@ func TestValidateImageReference_ValidImageReference(t *testing.T) {
 	}
 }
 
-func TestGetNameFromImageReference(t *testing.T) {
+func TestGetSpinAppName(t *testing.T) {
 	testCases := []struct {
-		reference string
-		name      string
+		reference  string
+		customName string
+		name       string
 	}{
 		{
-			reference: "bacongobbler/hello-rust",
-			name:      "hello-rust",
+			reference:  "bacongobbler/hello-rust",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "bacongobbler/hello-rust:v1.0.0",
-			name:      "hello-rust",
+			reference:  "bacongobbler/hello-rust:v1.0.0",
+			customName: "",
+			name:       "hello-rust",
 		}, {
 
-			reference: "ghcr.io/bacongobbler/hello-rust",
-			name:      "hello-rust",
+			reference:  "ghcr.io/bacongobbler/hello-rust",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "ghcr.io/bacongobbler/hello-rust:v1.0.0",
-			name:      "hello-rust",
+			reference:  "ghcr.io/bacongobbler/hello-rust:v1.0.0",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
-			name:      "runtime-class-manager",
+			reference:  "ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
+			customName: "",
+			name:       "runtime-class-manager",
 		}, {
-			reference: "nginx:latest",
-			name:      "nginx",
+			reference:  "nginx:latest",
+			customName: "",
+			name:       "nginx",
 		}, {
-			reference: "nginx",
-			name:      "nginx",
+			reference:  "nginx:latest",
+			customName: "web-server",
+			name:       "web-server",
 		}, {
-			reference: "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
-			name:      "hello-spinkube",
+			reference:  "nginx",
+			customName: "",
+			name:       "nginx",
+		}, {
+			reference:  "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
+			customName: "",
+			name:       "hello-spinkube",
+		}, {
+			reference:  "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
+			customName: "hi-spinkube",
+			name:       "hi-spinkube",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.reference, func(t *testing.T) {
-			actualName, err := getNameFromImageReference(tc.reference)
+			actualName, err := getSpinAppName(tc.reference, tc.customName)
 			require.Nil(t, err)
 			require.Equal(t, tc.name, actualName, "Expected image name from reference")
 		})
