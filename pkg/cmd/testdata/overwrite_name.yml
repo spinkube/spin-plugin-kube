@@ -1,0 +1,8 @@
+apiVersion: core.spinkube.dev/v1alpha1
+kind: SpinApp
+metadata:
+  name: my-custom-name
+spec:
+  image: "ghcr.io/foo/example-app:v0.1.0"
+  executor: containerd-shim-spin
+  replicas: 2

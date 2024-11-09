@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -111,6 +112,16 @@ func TestScaffoldOutput(t *testing.T) {
 			},
 			expected: "components.yml",
 		},
+		{
+			name: "overwrite name",
+			opts: ScaffoldOptions{
+				from:     "ghcr.io/foo/example-app:v0.1.0",
+				replicas: 2,
+				executor: "containerd-shim-spin",
+				name:     "my-custom-name",
+			},
+			expected: "overwrite_name.yml",
+		},
 	}
 
 	for _, tc := range testcases {
@@ -147,42 +158,59 @@ func TestValidateImageReference_ValidImageReference(t *testing.T) {
 	}
 }
 
-func TestGetNameFromImageReference(t *testing.T) {
+func TestGetSpinAppName(t *testing.T) {
 	testCases := []struct {
-		reference string
-		name      string
+		reference  string
+		customName string
+		name       string
 	}{
 		{
-			reference: "bacongobbler/hello-rust",
-			name:      "hello-rust",
+			reference:  "bacongobbler/hello-rust",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "bacongobbler/hello-rust:v1.0.0",
-			name:      "hello-rust",
+			reference:  "bacongobbler/hello-rust:v1.0.0",
+			customName: "",
+			name:       "hello-rust",
 		}, {
 
-			reference: "ghcr.io/bacongobbler/hello-rust",
-			name:      "hello-rust",
+			reference:  "ghcr.io/bacongobbler/hello-rust",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "ghcr.io/bacongobbler/hello-rust:v1.0.0",
-			name:      "hello-rust",
+			reference:  "ghcr.io/bacongobbler/hello-rust:v1.0.0",
+			customName: "",
+			name:       "hello-rust",
 		}, {
-			reference: "ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
-			name:      "runtime-class-manager",
+			reference:  "ghcr.io/spinkube/spinkube/runtime-class-manager:v1",
+			customName: "",
+			name:       "runtime-class-manager",
 		}, {
-			reference: "nginx:latest",
-			name:      "nginx",
+			reference:  "nginx:latest",
+			customName: "",
+			name:       "nginx",
 		}, {
-			reference: "nginx",
-			name:      "nginx",
+			reference:  "nginx:latest",
+			customName: "web-server",
+			name:       "web-server",
 		}, {
-			reference: "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
-			name:      "hello-spinkube",
+			reference:  "nginx",
+			customName: "",
+			name:       "nginx",
+		}, {
+			reference:  "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
+			customName: "",
+			name:       "hello-spinkube",
+		}, {
+			reference:  "ttl.sh/hello-spinkube@sha256:cc4b191d11728b4e9e024308f0c03aded893da2002403943adc9deb8c4ca1644",
+			customName: "hi-spinkube",
+			name:       "hi-spinkube",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.reference, func(t *testing.T) {
-			actualName, err := getNameFromImageReference(tc.reference)
+			actualName, err := getSpinAppName(tc.reference, tc.customName)
 			require.Nil(t, err)
 			require.Equal(t, tc.name, actualName, "Expected image name from reference")
 		})
@@ -304,6 +332,22 @@ func TestFlagValidation(t *testing.T) {
 				targetCPUUtilizationPercentage: 1,
 			},
 			expectedError: "target memory utilization percentage (0) must be between 1 and 100",
+		},
+		{
+			name: "must provide valid DNS subdomain name",
+			opts: ScaffoldOptions{
+				from: "ghcr.io/foo/example-app:v0.1.0",
+				name: "my*app",
+			},
+			expectedError: "invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars",
+		},
+		{
+			name: "must provide valid DNS subdomain name 2",
+			opts: ScaffoldOptions{
+				from: "ghcr.io/foo/example-app:v0.1.0",
+				name: strings.Repeat("a", 254),
+			},
+			expectedError: "invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars",
 		},
 	}
 

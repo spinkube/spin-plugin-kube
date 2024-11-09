@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	artifact string
-	replicas int32
-	dryRun   bool
+	artifact   string
+	replicas   int32
+	dryRun     bool
+	customName string
 )
 
 var deployCmd = &cobra.Command{
@@ -23,7 +24,7 @@ var deployCmd = &cobra.Command{
 	Short:  "Deploy application to Kubernetes",
 	Hidden: isExperimentalFlagNotSet,
 	RunE: func(_ *cobra.Command, _ []string) error {
-		name, err := getNameFromImageReference(artifact)
+		name, err := getSpinAppName(artifact, customName)
 		if err != nil {
 			return err
 		}
@@ -65,7 +66,7 @@ func init() {
 	deployCmd.Flags().BoolVar(&dryRun, "dry-run", false, "only print the kubernetes manifest without deploying")
 	deployCmd.Flags().Int32VarP(&replicas, "replicas", "r", 2, "Number of replicas for the application")
 	deployCmd.Flags().StringVarP(&artifact, "from", "f", "", "Reference in the registry of the application")
-
+	deployCmd.Flags().StringVarP(&customName, "name", "", "", "Overwrite the generated name of the application")
 	if err := deployCmd.MarkFlagRequired("from"); err != nil {
 		log.Fatal(err)
 	}

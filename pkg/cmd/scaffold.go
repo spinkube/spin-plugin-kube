@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -14,6 +15,7 @@ import (
 )
 
 type ScaffoldOptions struct {
+	name                              string
 	autoscaler                        string
 	configfile                        string
 	cpuLimit                          string
@@ -250,8 +252,7 @@ func scaffold(opts ScaffoldOptions) ([]byte, error) {
 	if err := validateFlags(opts); err != nil {
 		return nil, err
 	}
-
-	name, err := getNameFromImageReference(opts.from)
+	name, err := getSpinAppName(opts.from, opts.name)
 	if err != nil {
 		return nil, err
 	}
@@ -302,18 +303,45 @@ func validateImageReference(imageRef string) bool {
 	return err == nil
 }
 
-func getNameFromImageReference(imageRef string) (string, error) {
-	ref, err := dockerparser.Parse(imageRef)
-	if err != nil {
-		return "", err
+func validateName(name string) bool {
+	// ensure name is a valid DNS subdomain
+	const pattern = `^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`
+
+	// check length
+	if len(name) < 1 || len(name) > 253 {
+		return false
 	}
 
-	if strings.Contains(ref.ShortName(), "/") {
-		parts := strings.Split(ref.ShortName(), "/")
-		return parts[len(parts)-1], nil
-	}
+	// Compile the regex
+	re := regexp.MustCompile(pattern)
 
-	return ref.ShortName(), nil
+	// Match the name against the pattern
+	return re.MatchString(name)
+}
+
+// / Retrieve the desired name for the SpinApp CR
+// / If provided, custom name has highest priority
+// / If not provided, the name is computed from the image reference
+// / In either case, the resulting name will be validated using the `validateName` func
+func getSpinAppName(imageRef string, customName string) (string, error) {
+	name := customName
+	if len(name) == 0 {
+		ref, err := dockerparser.Parse(imageRef)
+		if err != nil {
+			return "", err
+		}
+		switch strings.Contains(ref.ShortName(), "/") {
+		case true:
+			parts := strings.Split(ref.ShortName(), "/")
+			name = parts[len(parts)-1]
+		case false:
+			name = ref.ShortName()
+		}
+	}
+	if !validateName(name) {
+		return "", fmt.Errorf("invalid name provided. Must be a valid DNS subdomain name and not more than 253 chars")
+	}
+	return name, nil
 }
 
 func init() {
@@ -333,7 +361,7 @@ func init() {
 	scaffoldCmd.Flags().StringSliceVarP(&scaffoldOpts.imagePullSecrets, "image-pull-secret", "s", []string{}, "Secrets in the same namespace to use for pulling the image")
 	scaffoldCmd.PersistentFlags().StringToStringVarP(&scaffoldOpts.variables, "variable", "v", nil, "Application variable (name=value) to be provided to the application")
 	scaffoldCmd.PersistentFlags().StringSliceVarP(&scaffoldOpts.components, "component", "", nil, "Component ID to run. This can be specified multiple times. The default is all components.")
-
+	scaffoldCmd.Flags().StringVarP(&scaffoldOpts.name, "name", "", "", "Overwrite the generated name of the application")
 	if err := scaffoldCmd.MarkFlagRequired("from"); err != nil {
 		log.Fatal(err)
 	}
